@@ -34,8 +34,8 @@ Due to the rules and regulation of the SilverFocs incubator, pushing code to thi
 Other ways of contribution, such as reviews and bug reports are welcome.
 
 # Author team 
-	[Team Name]
-[Name 1]
+	p1team-17
+Zhou Ziming 521370910142
 [Name 2]
 [Name 3]
 [Name 4]
