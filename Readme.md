@@ -36,7 +36,7 @@ Other ways of contribution, such as reviews and bug reports are welcome.
 # Author team 
 	p1team-17
 Zhou Ziming 521370910142
-[Name 2]
+Jinlock Choi 520370990012
 [Name 3]
 [Name 4]
 
