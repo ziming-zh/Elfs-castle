@@ -35,10 +35,11 @@ Other ways of contribution, such as reviews and bug reports are welcome.
 
 # Author team 
 	p1team-17
-Zhou Ziming 521370910142
+Ziming Zhou 521370910142
+
 Jinlock Choi 520370990012
-[Name 3]
-[Name 4]
+
+Chongye Yang 521370910088
 
 # License 
 [SilverFocs Incubator Licence] (Link to it on silverfocs website) 
