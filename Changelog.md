@@ -1,10 +1,17 @@
-[ProjectName]: [Short Project Description]
+[p1]: [Short Project Description]
 
 # Changelog
 All notable changes to this project are documented in this file.
 
+#[1.0] -- {2022/5/25}
+	Added
+
+- Framework of  the project (init / update / view / subscription)
+- Basic type elements (bricks, ball, plate)
+
 #[version] -- {Date}
 	Added
+
 - [feature 1]
 - [feature 2]
 	Removed
@@ -16,22 +23,6 @@ All notable changes to this project are documented in this file.
 	Fixed
 - [bug 1]
 - [bug 2]
-
-
-#[version] -- {Date}
-	Added
-- [feature 1]
-- [feature 2]
-	Removed
-- [feature 1]
-- [feature 2]
-	Changed
-- [feature 1]
-- [feature 2]
-	Fixed
-- [bug 1]
-- [bug 2]
-
 
 
 
