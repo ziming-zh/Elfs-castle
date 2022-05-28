@@ -9,6 +9,9 @@ All notable changes to this project are documented in this file.
 - Framework of  the project (init / update / view / subscription)
 - Basic type elements (bricks, ball, plate)
 
+#[1.1] -- {2022/5/28} Added
+- Fix all the existed bug and make the code can be compiled for m1
+
 #[version] -- {Date}
 	Added
 

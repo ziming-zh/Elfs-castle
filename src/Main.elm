@@ -8,20 +8,20 @@ import Debug exposing (toString)
 import Html exposing (..)
 import Html.Events exposing (keyCode)
 import Html.Attributes as HtmlAttr exposing (..)
-import Svg exposing (Svg, Attribute, svg, rect, defs, filter, feGaussianBlur, feMerge, feMergeNode)
-import Svg.Attributes exposing (width, height, viewBox, x, y, rx, fill, id, stdDeviation, result)
 import Task
+import Svg exposing (Svg, Attribute, svg, rect, defs, filter, feGaussianBlur, feMerge, feMergeNode)
+{-import Svg.Attributes exposing (width, height, viewBox, x, y, rx, fill, id, stdDeviation, result)-}
+import Svg.Attributes as SvgAttr
 import Json.Decode as Decode
 
 
-
-type alias Game =
+type alias Model =
     { time : Float
     , windowsize : ( Float, Float )
     , ball : Ball
     , isDead : Bool
     , bricks : Bricks
-    , plate : Plate
+    , plate : Int
     , bounce : Bool
     , paused : Bool
     }
@@ -37,8 +37,6 @@ type alias Bricks =
 
 type alias Block = 
     ( Int , Int )
-
-type alias Plate = ( Int , Int )
 
 type ArrowKey
     = NoKey
@@ -80,25 +78,16 @@ initBricks =
     List.map line cols
         |> List.concat
 
-initPlate : Plate
+initPlate : Int
 initPlate = 400
 
-init : Game
-init =
-    { time = 0
-    , windowsize = ( 800, 600)
-    , ball = initBall
-    , isDead = False
-    , pause = False
-    , bounce = False
-    , bricks = initBricks
-    , plate = initPlate
-    }
+model_init : Model
+model_init = 
+    Model 0 ( 800, 600 ) initBall False initBricks initPlate False False
 
 init : () -> ( Model, Cmd Msg )
 init a =
-    ( Game , Task.perform GetViewport getViewport )
-
+    ( model_init , Task.perform GetViewport getViewport )
 
 --View
 
@@ -122,32 +111,34 @@ view model =
                 , SvgAttr.r "20px"
                 , SvgAttr.fill "black"
                 ]
-                []
+                [] ,
+                viewBackground
             ]
-            [ viewBackground ]
+            {-[ viewBackground ]
                 ++ viewBall game.ball
                 ++ viewBlocks game.blocks
-                ++ viewPlate game.plate
+                ++ viewPlate game.plate-}
         ]
 
 
-backgroundColor : Attribute Msg
-backgroundColor =
-    fill "white"
 
 viewBackground : Svg Msg
 viewBackground =
-    rect [ x "0", y "0", width size, height size, backgroundColor ] []
+    Svg.rect [ SvgAttr.x "0", SvgAttr.y "0", SvgAttr.width "100" , SvgAttr.height "100" , backgroundColor ] []
 
-
+backgroundColor : Attribute Msg
+backgroundColor =
+    SvgAttr.fill "white"
+{-
 viewBall : Ball -> Svg Msg
 viewBall ball =
-    ----
+    Svg.svg [][]
 
 viewPlate : Plate -> Svg Msg
 viewPlate plate = 
-    ----
-
+    Svg.svg [][]
+-}
+{-
 viewBlocks : List Block -> List (Svg Msg)
 viewBlocks blocks =
     let
@@ -155,17 +146,17 @@ viewBlocks blocks =
             ( toString block.x, toString block.y )
     in
         -- rect [ x strX, y strY, width "80", height "40", fill "purple", rx "0.2" ] []
-        List map ...
+        List map ... -}
 
 
 -- Update
 
 
-update : Msg -> Game -> ( Model, Cmd Msg )
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Tick elapsed ->
-            updateGame game
+            updateGame model
 
         GetViewport { viewport } ->
             ( { model
@@ -187,58 +178,60 @@ update msg model =
             , Cmd.none
             )
         ArrowPressed Space ->
-            ( { game | paused = not game.paused }, Cmd.none )
+            ( { model | paused = not model.paused }, Cmd.none )
 
         ArrowPressed arrow ->
-            ( move_plate arrow game, Cmd.none )
+            ( move_plate arrow model, Cmd.none )
 
 
-move_plate : ArrowKey -> Game -> Game
-move_plate key game =
+move_plate : ArrowKey -> Model -> Model
+move_plate keyy model =
     let
-        { plate } =
-            game
+        old_plate =
+            model.plate
         
         new_plate = 
-            if key == LeftKey
-                plate-10
-            else if key == RightKey
-                plate+10
+            if keyy == LeftKey then
+                old_plate-10
+            else 
+            if keyy == RightKey then
+                old_plate+10
             else   
-                plate
+                old_plate
     in
-        { game | plate = new_plate }
+        { model | plate = new_plate }
 
-updateGame : Game -> ( Game , Cmd Msg )
-    if game.isDead || game.paused then
-        ( game, Cmd.none)
+updateGame : Model -> ( Model , Cmd Msg )
+updateGame model = 
+    if model.isDead || model.paused then
+        ( model, Cmd.none)
     else
-        ( game, Cmd.none)
-            |> ballHitTheBrick
+        ( model, Cmd.none)
+        {-    |> ballHitTheBrick
             |> ballAtTheEdge
             |> ballAtTheBottom
             |> updateBall
-            |> updateBrick
+            |> updateBrick-}
 
-ballHitTheBrick : ( Game , Cmd Msg ) -> ( Game, Cmd Msg)
-ballHitTheBrick ( game, cmd) =
+ballHitTheBrick : ( Model , Cmd Msg ) -> ( Model, Cmd Msg)
+ballHitTheBrick ( model, cmd) =
     let
         mball =
-            game.ball
+            model.ball
         
         posx = Tuple.first (mball.pos)
         posy = Tuple.second (mball.pos)
         vlx = Tuple.first (mball.vel)
         vly = Tuple.second (mball.vel)
+        nball = mball
         -- twist the velocity direction
-        if posx == 0  || posx == 800 then 
+       {- if posx == 0  || posx == 800 then 
             --nball-velocity-twist here
-            nball = { mball | vel = }
-
+            nball = mball -}
     in
-        ( { game | ball = nball }, cmd )
+        ( { model | ball = nball }, cmd )
 
-
+{-
 ballAtTheEdge : ( Game, Cmd Msg ) -> ( Game, Msg )
 ballAtTheEdge ( game, cmd ) = 
     let 
@@ -259,7 +252,7 @@ updateBrick ( game, cmd ) =
     -- logic to edit the List Bricks in the game properties 
 
     in
-
+-}
 
 -- Subscription
 
@@ -276,16 +269,16 @@ key : Int -> Msg
 key keycode =
     case keycode of
         38 ->
-            Key_Up
+            ArrowPressed UpKey
 
         40 ->
-            Key_Down
+            ArrowPressed DownKey
 
         37 ->
-            Key_Left
+            ArrowPressed LeftKey
 
         39 ->
-            Key_Right
+            ArrowPressed RightKey
 
         _ ->
-            Key_None
+            ArrowPressed NoKey
