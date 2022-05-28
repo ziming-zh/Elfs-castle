@@ -11,6 +11,7 @@ All notable changes to this project are documented in this file.
 
 #[1.1] -- {2022/5/28} Added
 - Fix all the existed bug and make the code can be compiled for m1
+- Demo code of View to draw bricks、ball、plate
 
 #[version] -- {Date}
 	Added

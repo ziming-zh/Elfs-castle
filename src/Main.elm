@@ -63,15 +63,18 @@ main =
 
 --Initialization
 
+
+
+    
 initBall : Ball
 initBall = 
-    Ball (400, 600) (-40 , 30)
+    Ball (500, 455) (-40 , 30)
 
 initBricks : Bricks
 initBricks = 
     let
-        rows = List.map (\x -> 40 + x*40) (List.range 0 5)
-        cols = List.map (\x ->  x*80) (List.range 0 9)
+        rows = List.map (\x ->  x*100) (List.range 0 9)
+        cols = List.map (\x ->  x*21) (List.range 0 3)
         line =
             \y -> List.map (\x -> Tuple.pair x y) rows
     in
@@ -79,18 +82,42 @@ initBricks =
         |> List.concat
 
 initPlate : Int
-initPlate = 400
+initPlate = 425
 
 model_init : Model
 model_init = 
-    Model 0 ( 800, 600 ) initBall False initBricks initPlate False False
+    Model 0 ( 1000, 500 ) initBall False initBricks initPlate False False
 
 init : () -> ( Model, Cmd Msg )
 init a =
     ( model_init , Task.perform GetViewport getViewport )
 
+
+
+
+
 --View
 
+
+getx : Float -> Float -> String
+getx x xx = 
+    String.fromFloat (x/xx*1518)
+
+gety : Float -> Float -> String
+gety y yy = 
+    String.fromFloat (y/yy*759)
+getr r =
+    String.fromFloat (r/500*759)
+
+drawreac : ( Float , Float ) -> ( Float , Float ) -> ( Float , Float ) -> String -> Svg Msg
+drawreac (x,y) (dx,dy) (xx,yy) color = 
+    Svg.rect [ SvgAttr.x (getx x xx), SvgAttr.y (gety y yy), SvgAttr.width (getx dx xx) , SvgAttr.height (gety dy yy) , SvgAttr.fill color ][ ]
+{- (x,y) : the left up point , (dx,dy) : size of the reactangle , (xx,yy) : windows size -}
+
+drawcir : ( Float , Float ) -> ( Float , Float ) -> Float -> String -> Svg Msg
+drawcir (x,y) (xx,yy) r color =
+    Svg.circle [ SvgAttr.cx (getx x xx), SvgAttr.cy (gety y yy), SvgAttr.r (getr r) , SvgAttr.fill color ][] 
+{- (x,y) : center point , (xx,yy) : windows size -}
 
 view : Model -> Html Msg
 view model =
@@ -105,48 +132,55 @@ view model =
             [ SvgAttr.width "100%"
             , SvgAttr.height "100%"
             ]
-            [ Svg.circle
-                [ SvgAttr.cx (toString ((Tuple.first model.windowsize) / 2 + 100 * cos (model.time / 200)) ++ "px")
-                , SvgAttr.cy (toString ((Tuple.second model.windowsize) / 2 + 100 * sin (model.time / 200)) ++ "px")
-                , SvgAttr.r "20px"
-                , SvgAttr.fill "black"
+            (
+                List.concat
+                [ 
+                    [viewPlate model model.plate],
+                    viewBlocks model model.bricks,
+                    [viewBall model model.ball]
                 ]
-                [] ,
-                viewBackground
-            ]
+            )
             {-[ viewBackground ]
-                ++ viewBall game.ball
-                ++ viewBlocks game.blocks
-                ++ viewPlate game.plate-}
+                viewBackground
+                ++ 
+            -}
         ]
 
 
 
-viewBackground : Svg Msg
-viewBackground =
-    Svg.rect [ SvgAttr.x "0", SvgAttr.y "0", SvgAttr.width "100" , SvgAttr.height "100" , backgroundColor ] []
 
 backgroundColor : Attribute Msg
 backgroundColor =
     SvgAttr.fill "white"
-{-
-viewBall : Ball -> Svg Msg
-viewBall ball =
-    Svg.svg [][]
 
-viewPlate : Plate -> Svg Msg
-viewPlate plate = 
-    Svg.svg [][]
--}
-{-
-viewBlocks : List Block -> List (Svg Msg)
-viewBlocks blocks =
+viewPlate : Model -> Int -> Svg Msg
+viewPlate model plate = 
     let
-        ( strX, strY ) =
-            ( toString block.x, toString block.y )
+        (xx,yy) = model.windowsize
+        x = model.plate
     in
-        -- rect [ x strX, y strY, width "80", height "40", fill "purple", rx "0.2" ] []
-        List map ... -}
+        drawreac (toFloat x,yy-30) (150,10) (xx,yy) "#00CDCD"
+
+viewBackground : Svg Msg
+viewBackground =
+    drawreac (0,0) (1000,500) (1000,500) "white"
+
+
+drawBlocks : ( Float , Float ) -> ( Int , Int ) -> Svg Msg
+drawBlocks windows ( x , y ) = 
+    drawreac (toFloat x,toFloat y) (99,20) windows "#00CDCD"
+
+
+viewBlocks : Model -> List Block -> List (Svg Msg)
+viewBlocks model blocks =
+    List.map (drawBlocks model.windowsize) blocks 
+
+
+viewBall : Model -> Ball -> Svg Msg
+viewBall model ball =
+    drawcir ( toFloat (Tuple.first ball.pos) , toFloat (Tuple.second ball.pos) ) model.windowsize 15 "#FFEC8B"
+
+{--}
 
 
 -- Update
@@ -154,6 +188,8 @@ viewBlocks blocks =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
+    ( model , Cmd.none )
+{-
     case msg of
         Tick elapsed ->
             updateGame model
@@ -182,6 +218,7 @@ update msg model =
 
         ArrowPressed arrow ->
             ( move_plate arrow model, Cmd.none )
+-}
 
 
 move_plate : ArrowKey -> Model -> Model
