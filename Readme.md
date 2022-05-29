@@ -1,4 +1,4 @@
-[ProjectName]: [Short Project Description]
+[P1]: [This project designs a simple game that manipulates the plane to prevent the ball from dropping off]
 
 # README
 This file contains relevant information about installation and startup.
