@@ -37,8 +37,6 @@ Other ways of contribution, such as reviews and bug reports are welcome.
 	p1team-17
 Ziming Zhou 521370910142
 
-Jinlock Choi 520370990012
-
 Chongye Yang 521370910088
 
 # License 
