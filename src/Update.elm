@@ -14,18 +14,18 @@ update msg model =
             ( model , Cmd.none )
         Tick elapsed ->
             updateGame model
-{-
     case msg of
 
         GetViewport { viewport } ->
-            ( { model
-                | windowsize =
-                    ( viewport.width
                     , viewport.height
                     )
               }
             , Cmd.none
             )
+            ( { model
+                | windowsize =
+{-
+                    ( viewport.width
 
         Resize wid hei ->
             ( { model
