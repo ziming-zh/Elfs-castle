@@ -12,10 +12,10 @@ update msg model =
             ( { model | paused = not model.paused }, Cmd.none )
         _ ->
             ( model , Cmd.none )
-{-
-    case msg of
         Tick elapsed ->
             updateGame model
+{-
+    case msg of
 
         GetViewport { viewport } ->
             ( { model
