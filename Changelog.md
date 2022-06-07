@@ -11,6 +11,15 @@ All notable changes to this project are documented in this file.
 
 #[1.1] -- {2022/5/28} Added
 - Fix all the existed bug and make the code can be compiled for m1
+- Demo code of View to draw bricks、ball、plate
+
+#[2.1] -- {2022/6/6}  Added
+- Make the ball movable
+- Added collision determination
+
+#[2.2] -- {2022/6/7}  Added
+- Adjust collision determination to fit high speed 
+- Added bricks elimination
 
 #[version] -- {Date}
 	Added
