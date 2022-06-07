@@ -74,9 +74,9 @@ viewBackground =
     drawreac (0,0) (1000,500) (1000,500) "white"
 
 
-drawBlocks : ( Float , Float ) -> ( Int , Int ) -> Svg Msg
+drawBlocks : ( Float , Float ) -> ( Float , Float ) -> Svg Msg
 drawBlocks windows ( x , y ) = 
-    drawreac (toFloat x,toFloat y) (99,20) windows "#00CDCD"
+    drawreac (x, y) (99,20) windows "#00CDCD"
 
 
 viewBlocks : Model -> List Block -> List (Svg Msg)
@@ -86,4 +86,4 @@ viewBlocks model blocks =
 
 viewBall : Model -> Ball -> Svg Msg
 viewBall model ball =
-    drawcir ( toFloat (Tuple.first ball.pos) , toFloat (Tuple.second ball.pos) ) model.windowsize 15 "#FFEC8B"
+    drawcir ( Tuple.first ball.pos , Tuple.second ball.pos ) model.windowsize 15 "#FFEC8B"
