@@ -1,6 +1,6 @@
 module Update exposing (..)
 import Message exposing (Msg(..))
-import Model exposing (Model, ArrowKey(..),Bricks,Line)
+import Model exposing (Model, ArrowKey(..),Bricks,Line,Block)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -103,14 +103,27 @@ collide (lx,ly) (nx,ny) (a,b) line =
     let
         (x1,y1) = line.p1
         (x2,y2) = line.p2
+        x = (y1-ly)*(nx-lx)/(ny-ly) + lx
+        y = (x1-lx)*(ny-ly)/(nx-lx) + ly
     in
-    if a == 1 then
-        if y1 == y2 then ((ly /= y1) && (ny == y1) && ( nx >= (Basics.min x1 x2) ) && ( nx <= (Basics.max x1 x2) ) )
-        else (0==1)
-    else 
-    if x1 == x2 then
-        ((lx /= x1) && (nx == x1) && ( ny >= (Basics.min y1 y2) ) && ( ny <= (Basics.max y1 y2) ) )
-    else (0==1)
+        if y1 == y2 && a == 1 then ( x >= (Basics.min x1 x2) && x <= (Basics.max x1 x2) ) && ( x >= (Basics.min lx nx) && x <= (Basics.max lx nx) )
+        else if x1 == x2 && b == 1 then ( y >= (Basics.min y1 y2) && y <= (Basics.max y1 y2) ) && ( y >= (Basics.min ly ny) && y <= (Basics.max ly ny))
+        else (0 == 1)
+
+checkbrike : ( Float , Float ) -> ( Float , Float ) -> Block -> Bool
+checkbrike (lx,ly) (nx,ny) (x,y) =
+    let
+        lines = getlines [(x,y)]
+    in
+        not (List.any (collide (lx,ly) (nx,ny) (1,1)) lines)
+
+updateBrike : ( Float , Float ) -> ( Float , Float ) -> List Block -> ( Model , Cmd Msg ) -> ( Model , Cmd Msg )
+updateBrike (lx,ly) (nx,ny) list1 (model,cmd) =
+    let
+        nbrick = List.filter (checkbrike (lx,ly) (nx,ny)) list1
+
+    in
+        ( { model | bricks = nbrick } , Cmd.none )
 
 ballHitTheBrick : ( Model , Cmd Msg ) -> ( Model, Cmd Msg)
 ballHitTheBrick ( model, cmd) =
@@ -123,51 +136,30 @@ ballHitTheBrick ( model, cmd) =
         ny = ly + Tuple.second (lball.vel)
         -- twist the velocity direction
         lines = List.concat [getlines model.bricks,[{p1=(1000,0),p2=(1000,500)},{p1=(0,0),p2=(1000,0)},{p1=(0,0),p2=(0,500)},{p1=(0,500),p2=(1000,500)}]]
-       {- if posx == 0  || posx == 800 then 
-            --nball-velocity-twist here
-            nball = mball -}
+
     in
-    --上下
         if List.any (collide (lx,ly+15) (nx,ny+15) (1,0)) lines then
             ( { model | 
                 ball = { pos = model.ball.pos , vel = ( Tuple.first model.ball.vel , -(Tuple.second model.ball.vel )) } 
               }
-             , Cmd.none )
-        else  if List.any (collide (lx,ly+(-15)) (nx,ny+(-15)) (1,0)) lines then
+             , Cmd.none ) 
+             |> (updateBrike (lx,ly+15) (nx,ny+15) model.bricks)
+        else  if List.any (collide (lx,ly-15) (nx,ny-15) (1,0)) lines then
             ( { model | 
                 ball = { pos = model.ball.pos , vel = ( Tuple.first model.ball.vel , -(Tuple.second model.ball.vel )) } 
               }
              , Cmd.none )
+             |> (updateBrike (lx,ly-15) (nx,ny-15) model.bricks)
         else  if List.any (collide (lx+15,ly) (nx+15,ny) (0,1)) lines then
             ( { model | 
                 ball = { pos = model.ball.pos , vel = ( -(Tuple.first model.ball.vel) , Tuple.second model.ball.vel)  } 
               }
              , Cmd.none )
-        else if List.any (collide (lx+(-15),ly) (nx+(-15),ny) (0,1)) lines then
+             |> (updateBrike (lx+5,ly) (nx+15,ny) model.bricks)
+        else if List.any (collide (lx-15,ly) (nx-15,ny) (0,1)) lines then
             ( { model | 
                 ball = { pos = model.ball.pos , vel = ( -(Tuple.first model.ball.vel) , Tuple.second model.ball.vel)  } 
               }
              , Cmd.none )
+             |> (updateBrike (lx-15,ly) (nx-15,ny) model.bricks)
         else ( model , Cmd.none )
-{-
-ballAtTheEdge : ( Game, Cmd Msg ) -> ( Game, Msg )
-ballAtTheEdge ( game, cmd ) = 
-    let 
-
-    in
-
-ballAtTheBottom : ( Game, Cmd Msg ) -> ( Game, Msg )
-ballAtTheBottom ( game, cmd ) = 
-    let 
-
-    in
-
-
-
-updateBrick : ( Game, Cmd Msg ) -> ( Game, Msg )
-updateBrick ( game, cmd ) = 
-    let 
-    -- logic to edit the List Bricks in the game properties 
-
-    in
--}
