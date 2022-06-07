@@ -32,5 +32,8 @@ key keycode =
         39 ->
             ArrowPressed RightKey
 
+        32 ->
+            ArrowPressed Space
+
         _ ->
             ArrowPressed NoKey

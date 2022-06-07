@@ -39,7 +39,7 @@ type ArrowKey
    
 initBall : Ball
 initBall = 
-    Ball (500, 455) ( 1 , -1 )
+    Ball (500, 455) ( 3 , -3 )
 
 initBricks : Bricks
 initBricks = 
