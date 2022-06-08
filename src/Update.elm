@@ -14,13 +14,6 @@ update msg model =
             ( updatePlate1 arrow model , Cmd.none )
         ArrowReleased arrow ->
             ( updatePlate2 arrow model , Cmd.none )
-        _ ->
-
-            ( model , Cmd.none )
-{-
-    case msg of
-
-
         GetViewport { viewport } ->
             ( { model
                 | windowsize =
@@ -28,8 +21,14 @@ update msg model =
                     , viewport.height
                     )
               }
-            , Cmd.none
-            )
+            , Cmd.none ) 
+        _ ->
+            ( model , Cmd.none )
+            
+{-
+    case msg of
+
+
 
         Resize wid hei ->
             ( { model
@@ -144,6 +143,9 @@ ballHitTheBrick ( model , cmd ) =
         ny = ly + Tuple.second (lball.vel)
         -- twist the velocity direction
         lines = List.concat [[pointtoline (150,0) (model.plate.pos,470)],getlines model.bricks,[{p1=(1000,0),p2=(1000,500)},{p1=(0,0),p2=(1000,0)},{p1=(0,0),p2=(0,500)}]]
+        
+        line = List.concat [getlines model.bricks,[{p1=(1000,0),p2=(1000,500)},{p1=(0,0),p2=(1000,0)},{p1=(0,0),p2=(0,500)}]]
+
         nvel1 = ( Tuple.first model.ball.vel , -(Tuple.second model.ball.vel ))
         nvel2 = ( -(Tuple.first model.ball.vel) , Tuple.second model.ball.vel)
     in
@@ -154,7 +156,7 @@ ballHitTheBrick ( model , cmd ) =
              , Cmd.none ) 
              |> (updateBrike (lx,ly+15) (nx,ny+15) model.bricks)
         else  
-        if List.any (collide (lx,ly-15) (nx,ny-15) (1,0)) lines then
+        if List.any (collide (lx,ly-15) (nx,ny-15) (1,0)) line then
             ( { model | 
                 ball = { pos = model.ball.pos , vel = nvel1 } 
               }

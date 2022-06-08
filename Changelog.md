@@ -21,6 +21,10 @@ All notable changes to this project are documented in this file.
 - Adjust collision determination to fit high speed 
 - Added bricks elimination
 
+#[2.3] -- {2022/6/8}  Added
+- Adjust paddle-moving
+- Fixed the bug that the ball can't conllide correctly with paddle
+
 #[version] -- {Date}
 	Added
 
