@@ -5,6 +5,7 @@ import Model exposing (ArrowKey)
 
 type Msg
     = ArrowPressed ArrowKey
+    | ArrowReleased ArrowKey
     | Tick Float
     | GetViewport Viewport
     | Resize Int Int

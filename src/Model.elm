@@ -6,9 +6,14 @@ type alias Model =
     , ball : Ball
     , isDead : Bool
     , bricks : Bricks
-    , plate : Int
+    , plate : Plate
     , bounce : Bool
     , paused : Bool
+    }
+
+type alias Plate = 
+    { state : Dir
+    , pos : Float
     }
 
 type alias Ball =
@@ -36,7 +41,11 @@ type ArrowKey
     | UpKey
     | DownKey
 
-   
+type Dir 
+    = Left
+    | Right
+    | None
+    
 initBall : Ball
 initBall = 
     Ball (500, 455) ( 3 , -3 )
@@ -52,8 +61,8 @@ initBricks =
         List.map line cols
             |> List.concat
 
-initPlate : Int
-initPlate = 425
+initPlate : Plate
+initPlate = Plate None 425
 
 model_init : Model
 model_init = 
