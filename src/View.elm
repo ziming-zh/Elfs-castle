@@ -3,7 +3,7 @@ import Svg exposing (Svg, Attribute, svg, rect, defs, filter, feGaussianBlur, fe
 {-import Svg.Attributes exposing (width, height, viewBox, x, y, rx, fill, id, stdDeviation, result)-}
 import Svg.Attributes as SvgAttr
 import Message exposing (Msg(..))
-import Model exposing (Model,Block,Ball)
+import Model exposing (Model,Block,Ball,Plate)
 import Html exposing (..)
 import Html.Attributes as HtmlAttr exposing (..)
 
@@ -61,13 +61,13 @@ backgroundColor : Html.Attribute Msg
 backgroundColor =
     SvgAttr.fill "white"
 
-viewPlate : Model -> Int -> Svg Msg
+viewPlate : Model -> Plate -> Svg Msg
 viewPlate model plate = 
     let
         (xx,yy) = model.windowsize
-        x = model.plate
+        x = model.plate.pos
     in
-        drawreac (toFloat x,yy+(-30)) (150,10) (xx,yy) "#00CDCD"
+        drawreac (x,470) (150,10) (xx,yy) "#00CDCD"
 
 viewBackground : Svg Msg
 viewBackground =
