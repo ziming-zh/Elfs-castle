@@ -24,6 +24,7 @@ All notable changes to this project are documented in this file.
 #[2.3] -- {2022/6/8}  Added
 - Adjust paddle-moving
 - Fixed the bug that the ball can't conllide correctly with paddle
+- Let game's size adapt to the window's size
 
 #[version] -- {Date}
 	Added

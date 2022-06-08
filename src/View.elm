@@ -14,8 +14,8 @@ getx x xx =
 gety : Float -> Float -> String
 gety y yy = 
     String.fromFloat (y/500*yy)
-getr r =
-    String.fromFloat (r/500*1180)
+getr r yy =
+    String.fromFloat (r/500*yy)
 
 drawreac : ( Float , Float ) -> ( Float , Float ) -> ( Float , Float ) -> String -> Svg Msg
 drawreac (x,y) (dx,dy) (xx,yy) color = 
@@ -32,7 +32,8 @@ view model =
         , HtmlAttr.style "left" "0"
         , HtmlAttr.style "top" "0"
         ]
-        [ Svg.svg
+        [ 
+        Svg.svg
             [ SvgAttr.width "100%"
             , SvgAttr.height "100%"
             ]
@@ -82,8 +83,10 @@ viewBlocks model blocks =
 
 drawcir : ( Float , Float ) -> ( Float , Float ) -> Float -> String -> Svg Msg
 drawcir (x,y) (xx,yy) r color =
-    Svg.circle [ SvgAttr.cx (getx x xx), SvgAttr.cy (gety y yy), SvgAttr.r (getr r) , SvgAttr.fill color ][] 
+    Svg.ellipse [ SvgAttr.cx (getx x xx), SvgAttr.cy (gety y yy), SvgAttr.rx (getx r xx) , SvgAttr.ry (gety r yy) ,  SvgAttr.fill color ][] 
+    
+   {- Svg.circle [ SvgAttr.cx (getx x xx), SvgAttr.cy (gety y yy), SvgAttr.r (getr r yy) , SvgAttr.fill color ][] -}
 {- (x,y) : center point , (xx,yy) : windows size -}
 viewBall : Model -> Ball -> Svg Msg
 viewBall model ball =
-    drawcir ( Tuple.first ball.pos , Tuple.second ball.pos ) model.windowsize 10 "#FFEC8B"
+    drawcir ( Tuple.first ball.pos , Tuple.second ball.pos ) model.windowsize 15 "#FFEC8B"

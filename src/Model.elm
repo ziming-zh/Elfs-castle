@@ -64,6 +64,7 @@ initBricks =
 initPlate : Plate
 initPlate = Plate None 425
 
+
 model_init : Model
 model_init = 
     Model 0 ( 1000, 500 ) initBall False initBricks initPlate False False

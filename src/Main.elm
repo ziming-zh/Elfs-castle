@@ -21,6 +21,23 @@ main =
 
 init : () -> ( Model, Cmd Msg )
 init a =
+        ( model_init
+        , Task.perform GetViewport getViewport
+        )
+
+{-
     ( model_init , Task.perform GetViewport getViewport )
 
-
+    Browser.element
+        { init =
+            \value ->
+                ( value
+                    |> Decode.decodeValue Model.decode
+                    |> Result.withDefault Model.initial
+                , Task.perform GetViewport getViewport
+                )
+        , update = Update.update
+        , view = View.view
+        , subscriptions = subscriptions
+        }
+-}

@@ -8,12 +8,12 @@ update msg model =
     case msg of
         Tick elapsed ->
             updateGame model
-        ArrowPressed Space ->
-            ( { model | paused = not model.paused }, Cmd.none )
-        ArrowPressed arrow ->
-            ( updatePlate1 arrow model , Cmd.none )
-        ArrowReleased arrow ->
-            ( updatePlate2 arrow model , Cmd.none )
+        
+        Resize width height ->
+            ( { model | windowsize = ( toFloat width, toFloat height ) }
+            , Cmd.none
+            )
+
         GetViewport { viewport } ->
             ( { model
                 | windowsize =
@@ -22,25 +22,19 @@ update msg model =
                     )
               }
             , Cmd.none ) 
-        _ ->
-            ( model , Cmd.none )
+
+        ArrowPressed Space ->
+            ( { model | paused = not model.paused }, Cmd.none )
+
+        ArrowPressed arrow ->
+            ( updatePlate1 arrow model , Cmd.none )
+
+        ArrowReleased arrow ->
+            ( updatePlate2 arrow model , Cmd.none )
+
+     {-   _ ->
+            ( model , Cmd.none ) -}
             
-{-
-    case msg of
-
-
-
-        Resize wid hei ->
-            ( { model
-                | windowsize =
-                    ( toFloat wid
-                    , toFloat hei
-                    )
-              }
-            , Cmd.none
-            )
--}
-
 updatePlate2 : ArrowKey -> Model -> Model
 updatePlate2 key model = 
     if model.plate.state == Left && key == LeftKey then { model | plate = { state = None , pos =  model.plate.pos } }
@@ -148,32 +142,22 @@ ballHitTheBrick ( model , cmd ) =
 
         nvel1 = ( Tuple.first model.ball.vel , -(Tuple.second model.ball.vel ))
         nvel2 = ( -(Tuple.first model.ball.vel) , Tuple.second model.ball.vel)
+        nball1 = { pos = model.ball.pos , vel = nvel1 }
+        nball2 = { pos = model.ball.pos , vel = nvel2 }
     in
         if List.any (collide (lx,ly+15) (nx,ny+15) (1,0)) lines then
-            ( { model | 
-                ball = { pos = model.ball.pos , vel = nvel1 } 
-              }
-             , Cmd.none ) 
-             |> (updateBrike (lx,ly+15) (nx,ny+15) model.bricks)
+            ( { model | ball = nball1 } , Cmd.none ) 
+                |> (updateBrike (lx,ly+15) (nx,ny+15) model.bricks)
         else  
         if List.any (collide (lx,ly-15) (nx,ny-15) (1,0)) line then
-            ( { model | 
-                ball = { pos = model.ball.pos , vel = nvel1 } 
-              }
-             , Cmd.none )
-             |> (updateBrike (lx,ly-15) (nx,ny-15) model.bricks)
+            ( { model | ball = nball1 } , Cmd.none )
+                |> (updateBrike (lx,ly-15) (nx,ny-15) model.bricks)
         else  
         if List.any (collide (lx+15,ly) (nx+15,ny) (0,1)) lines then
-            ( { model | 
-                ball = { pos = model.ball.pos , vel = nvel2 } 
-              }
-             , Cmd.none )
-             |> (updateBrike (lx+5,ly) (nx+15,ny) model.bricks)
+            ( { model | ball = nball2 } , Cmd.none )
+                |> (updateBrike (lx+5,ly) (nx+15,ny) model.bricks)
         else 
         if List.any (collide (lx-15,ly) (nx-15,ny) (0,1)) lines then
-            ( { model | 
-                ball = { pos = model.ball.pos , vel = nvel2  } 
-              }
-             , Cmd.none )
-             |> (updateBrike (lx-15,ly) (nx-15,ny) model.bricks)
+            ( { model | ball = nball2 } , Cmd.none )
+                |> (updateBrike (lx-15,ly) (nx-15,ny) model.bricks)
         else ( model , Cmd.none )
