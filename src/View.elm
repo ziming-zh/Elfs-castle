@@ -3,9 +3,10 @@ import Svg exposing (Svg, Attribute, svg, rect, defs, filter, feGaussianBlur, fe
 {-import Svg.Attributes exposing (width, height, viewBox, x, y, rx, fill, id, stdDeviation, result)-}
 import Svg.Attributes as SvgAttr
 import Message exposing (Msg(..))
-import Model exposing (Model,Block,Ball,Plate)
+import Model exposing (Model,Block,Ball,Plate,State)
 import Html exposing (..)
 import Html.Attributes as HtmlAttr exposing (..)
+import Html.Events exposing (onClick)
 import Color exposing (Color)
 import Markdown
 import View.Pacman as View
@@ -19,6 +20,40 @@ gety y =
 getr r =
     String.fromFloat (r)
 
+renderGameButton : State -> Html Msg
+renderGameButton state =
+    let
+        ( txt, msg ) =
+            case state of
+                Model.GG ->
+                    ( "New game", Start )
+
+                Model.Playing ->
+                    ( "Pause", Pause )
+
+                Model.Paused ->
+                    ( "Resume", Resume ) 
+    in
+    button
+        [ style "background" "#B1E4F1"
+        , style "border" "0"
+        , style "bottom" "30px"
+        , style "color" "#fff"
+        , style "cursor" "pointer"
+        , style "display" "block"
+        , style "font-family" "Helvetica, Arial, sans-serif"
+        , style "font-size" "18px"
+        , style "font-weight" "300"
+        , style "height" "60px"
+        , style "left" "30px"
+        , style "line-height" "60px"
+        , style "outline" "none"
+        , style "padding" "0"
+        , style "position" "absolute"
+        , style "width" "120px"
+        , onClick msg
+        ]
+        [ text txt ]
 
 renderPanel : Model -> Html Msg
 renderPanel model =
@@ -33,11 +68,13 @@ renderPanel model =
         , style "right" "0"
         , style "top" "0"
         ]
-        [ renderTitle "Tetris"
-        , renderLabel "Score"
-        , renderCount  3252
-        , renderLabel "Lines Cleared"
-        , renderLabel "Next Shape"
+        [ renderTitle "Elf"
+        , renderTxT "Score"
+        , renderCount  model.score
+     --   , renderCountt  (Tuple.first model.windowsize)
+      --  , renderCountt  (Tuple.second model.windowsize)
+        , renderEnd model.state "GG~~!!"
+        , renderGameButton model.state
         ]
 
 
@@ -53,15 +90,33 @@ renderTitle txt =
         [ text txt ]
 
 
-renderLabel : String -> Html Msg
-renderLabel txt =
+renderTxT : String -> Html Msg
+renderTxT txt =
     div
         [ style "color" "#bdc3c7"
-        , style "font-weight" "300"
+        , style "font-weight" "700"
         , style "line-height" "1"
         , style "margin" "30px 0 0"
         ]
         [ text txt ]
+
+renderEnd : State -> String -> Html Msg
+renderEnd state txt =
+    div
+        [ style "font-size" "40px"
+        , style "font-weight" "700"
+        , style "line-height" "1"
+        , style "margin" "30px 0 0"
+        , style "bottom" "250px"
+        , style "left" "30px"
+        , style "position" "absolute"
+        , style "display"
+          ( if state == Model.GG then "block"
+            else "none"
+          )
+        ]
+        [ text txt ]
+
 
 
 renderCount : Int -> Html Msg
@@ -74,32 +129,16 @@ renderCount n =
         ]
         [ text (String.fromInt n) ]
 
-
-
-renderControlButton : String -> List (Html.Attribute Msg) -> Html Msg
-renderControlButton txt attrs =
+renderCountt : Float -> Html Msg
+renderCountt n =
     div
-        ([ style "background" "#ecf0f1"
-         , style "border" "0"
-         , style "color" "#34495f"
-         , style "cursor" "pointer"
-         , style "text-align" "center"
-         , style "-webkit-user-select" "none"
-         , style "display" "block"
-         , style "float" "left"
-         , style "font-family" "Helvetica, Arial, sans-serif"
-         , style "font-size" "24px"
-         , style "font-weight" "300"
-         , style "height" "60px"
-         , style "line-height" "60px"
-         , style "margin" "20px 20px 0 0"
-         , style "outline" "none"
-         , style "padding" "0"
-         , style "width" "60px"
-         ]
-            ++ attrs
-        )
-        [ text txt ]
+        [ style "color" "#3993d0"
+        , style "font-size" "30px"
+        , style "line-height" "1"
+        , style "margin" "5px 0 0"
+        ]
+        [ text (String.fromFloat n) ]
+
 
 drawreac : ( Float , Float )  -> ( Float , Float ) -> String -> Html Msg
 drawreac (x,y) (dx,dy) color = 
@@ -143,12 +182,12 @@ renderBackground =
 
 pixelWidth : Float
 pixelWidth =
-    400
+    600
 
 
 pixelHeight : Float
 pixelHeight =
-    400
+    800
 
 view : Model -> Html Msg
 view model =
@@ -157,11 +196,11 @@ view model =
             model.windowsize
 
         r =
-            if w / h > pixelWidth / pixelHeight then
+            if w / h > (pixelWidth+200) / pixelHeight then
                 Basics.min 1 (h / pixelHeight)
 
             else
-                Basics.min 1 (w / pixelWidth)
+                Basics.min 1 (w / (pixelWidth+200))
     in
         div
             [ HtmlAttr.style "width" "100%"
@@ -172,7 +211,7 @@ view model =
             ]
             [ div
                 [ HtmlAttr.style "width" (String.fromFloat pixelWidth ++ "px")
-                , HtmlAttr.style "height" (String.fromFloat pixelHeight ++ "px")
+                , HtmlAttr.style "height"  (String.fromFloat pixelHeight ++ "px")
                 , HtmlAttr.style "position" "flex-shrink"
                 , HtmlAttr.style "left" (String.fromFloat ((w - pixelWidth * r) / 2) ++ "px")
                 , HtmlAttr.style "top" (String.fromFloat ((h - pixelHeight * r) / 2) ++ "px")
@@ -192,7 +231,7 @@ renderGame : Model -> Html Msg
 renderGame model = 
     Svg.svg
     [ SvgAttr.width (getx 600.0)
-    , SvgAttr.height (gety 600.0) 
+    , SvgAttr.height (gety 800.0) 
     ]     
     ([viewPlate model model.plate
         ,viewBall model model.ball]
@@ -211,7 +250,7 @@ viewPlate model plate =
        
         x = model.plate.pos
     in
-        drawreac (x,580) (150,10)  "#00CDCD"
+        drawreac (x,780) (150,10)  "#00CDCD"
 
 
 
@@ -225,12 +264,13 @@ viewBlocks model blocks =
     List.map drawBlocks blocks 
 
 
-
 drawcir : ( Float , Float ) -> Float -> String -> Html Msg
 drawcir (x,y)  r color =
     
     Svg.ellipse [ SvgAttr.cx (getx x ), SvgAttr.cy (gety y ), SvgAttr.rx (getx r) , SvgAttr.ry (gety r ) ,  SvgAttr.fill color ][] 
-    {- (x,y) : center point , (xx,yy) : windows size -}
+    
+   {- Svg.circle [ SvgAttr.cx (getx x xx), SvgAttr.cy (gety y yy), SvgAttr.r (getr r yy) , SvgAttr.fill color ][] -}
+{- (x,y) : center point , (xx,yy) : windows size -}
 viewBall : Model -> Ball -> Html Msg
 viewBall model ball =
     -- drawcir ( Tuple.first ball.pos , Tuple.second ball.pos ) 15 "#FFEC8B"

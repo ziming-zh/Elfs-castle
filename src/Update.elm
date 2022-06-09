@@ -24,13 +24,25 @@ update msg model =
             , Cmd.none ) 
 
         ArrowPressed Space ->
-            ( { model | paused = not model.paused }, Cmd.none )
+            ( { model | state = 
+                if model.state == Playing then Paused
+                else if model.state == Paused then Playing 
+                else GG }, Cmd.none )
 
         ArrowPressed arrow ->
             ( updatePlate1 arrow model , Cmd.none )
 
         ArrowReleased arrow ->
             ( updatePlate2 arrow model , Cmd.none )
+
+        Start ->
+            ( model_init , Cmd.none )
+
+        Pause ->
+            ( { model | state = Paused } , Cmd.none )
+        
+        Resume ->
+            ( { model | state = Playing } , Cmd.none )
 
      {-   _ ->
             ( model , Cmd.none ) -}
@@ -56,7 +68,7 @@ moveplate ( model , cmd ) =
         lpos = model.plate.pos
         npos = 
             if model.plate.state == Left then Basics.max (lpos-5) 0
-            else if model.plate.state == Right then Basics.min (lpos+5) 850
+            else if model.plate.state == Right then Basics.min (lpos+5) 450
             else lpos
     in
         ( { model | plate = { state = model.plate.state , pos = npos } } , Cmd.none )
@@ -65,25 +77,24 @@ updateBall : ( Model , Cmd Msg ) -> ( Model , Cmd Msg )
 updateBall ( model , cmd ) = 
     let
         ( vx , vy ) = model.ball.vel
-
+        npos = ( (Tuple.first model.ball.pos) + vx , (Tuple.second model.ball.pos) + vy )
+        nmodel = 
+            if Tuple.second model.ball.pos <= 850 then
+                { model | ball = { pos = npos , vel = model.ball.vel } }
+            else    
+                { model | state = GG }
     in
-        ( { model | ball =  { pos = ( (Tuple.first model.ball.pos) + vx , (Tuple.second model.ball.pos) + vy ),  
-                              vel = model.ball.vel }
-          } , Cmd.none)
+        ( nmodel , Cmd.none)
 
-updateTime : ( Model , Cmd Msg ) -> ( Model , Cmd Msg )
-updateTime ( model , cmd ) = 
-    ({model| time = model.time+0.2},cmd)
 
 updateGame : Model -> ( Model , Cmd Msg )
 updateGame model = 
-    if model.isDead || model.paused then
+    if model.state == Paused || model.state == GG then
         ( model, Cmd.none)
     else
         ( model, Cmd.none)
-            |> updateTime
-            |> updateBall
             |> ballHitTheBrick
+            |> updateBall
             |> moveplate
         {-    |> ballHitTheBrick
             |> ballAtTheEdge
@@ -100,8 +111,8 @@ pointadd (dx,dy) (x,y) =
 
 getlines : Bricks -> List Line
 getlines list1 = 
-    List.concat [ List.map (pointtoline (100,0)) list1 , List.map (pointtoline (0,20)) list1 , 
-        List.map (pointtoline(100,0)) (List.map (pointadd (0,20)) list1) , List.map (pointtoline (0,20)) (List.map (pointadd(100,0)) list1) ]
+    List.concat [ List.map (pointtoline (50,0)) list1 , List.map (pointtoline (0,50)) list1 , 
+        List.map (pointtoline(50,0)) (List.map (pointadd (0,50)) list1) , List.map (pointtoline (0,50)) (List.map (pointadd(50,0)) list1) ]
 
 collide : ( Float , Float ) -> ( Float , Float ) -> ( Float , Float ) -> Line -> Bool
 collide (lx,ly) (nx,ny) (a,b) line =
@@ -126,12 +137,13 @@ updateBrike : ( Float , Float ) -> ( Float , Float ) -> List Block -> ( Model , 
 updateBrike (lx,ly) (nx,ny) list1 (model,cmd) =
     let
         nbrick = List.filter (checkbrike (lx,ly) (nx,ny)) list1
+        nscore = ((List.length model.bricks) - (List.length nbrick))*100 + model.score
 
     in
-        ( { model | bricks = nbrick } , Cmd.none )
+        ( { model | bricks = nbrick , score = nscore } , Cmd.none )
 
 setbottomLine : Float
-setbottomLine = 580.0
+setbottomLine = 780.0
 
 
 
@@ -148,7 +160,8 @@ ballHitTheBrick ( model , cmd ) =
 
         -- twist the velocity direction
         lines = List.concat [[pointtoline (150,0) (model.plate.pos,bottomline)],getlines model.bricks,[{p1=(600,0),p2=(600,bottomline)},{p1=(0,0),p2=(600,0)},{p1=(0,0),p2=(0,bottomline)}]]
-        
+    --    lines = List.concat [[pointtoline (600,0) (0,780)],getlines model.bricks,[{p1=(600,0),p2=(600,bottomline)},{p1=(0,0),p2=(600,0)},{p1=(0,0),p2=(0,bottomline)}]]
+
         line = List.concat [getlines model.bricks,[{p1=(bottomline,0),p2=(bottomline,570)},{p1=(0,0),p2=(bottomline,0)},{p1=(0,0),p2=(0,bottomline)}]]
 
         nvel1 = ( Tuple.first model.ball.vel , -(Tuple.second model.ball.vel ))
