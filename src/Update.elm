@@ -126,6 +126,11 @@ updateBrike (lx,ly) (nx,ny) list1 (model,cmd) =
     in
         ( { model | bricks = nbrick } , Cmd.none )
 
+setbottomLine : Float
+setbottomLine = 580.0
+
+
+
 ballHitTheBrick : ( Model , Cmd Msg ) -> ( Model, Cmd Msg)
 ballHitTheBrick ( model , cmd ) =
     let
@@ -135,10 +140,12 @@ ballHitTheBrick ( model , cmd ) =
         ly = Tuple.second (lball.pos)
         nx = lx + Tuple.first (lball.vel)
         ny = ly + Tuple.second (lball.vel)
+        bottomline = setbottomLine
+
         -- twist the velocity direction
-        lines = List.concat [[pointtoline (150,0) (model.plate.pos,470)],getlines model.bricks,[{p1=(1000,0),p2=(1000,500)},{p1=(0,0),p2=(1000,0)},{p1=(0,0),p2=(0,500)}]]
+        lines = List.concat [[pointtoline (150,0) (model.plate.pos,bottomline)],getlines model.bricks,[{p1=(600,0),p2=(600,bottomline)},{p1=(0,0),p2=(600,0)},{p1=(0,0),p2=(0,bottomline)}]]
         
-        line = List.concat [getlines model.bricks,[{p1=(1000,0),p2=(1000,500)},{p1=(0,0),p2=(1000,0)},{p1=(0,0),p2=(0,500)}]]
+        line = List.concat [getlines model.bricks,[{p1=(bottomline,0),p2=(bottomline,570)},{p1=(0,0),p2=(bottomline,0)},{p1=(0,0),p2=(0,bottomline)}]]
 
         nvel1 = ( Tuple.first model.ball.vel , -(Tuple.second model.ball.vel ))
         nvel2 = ( -(Tuple.first model.ball.vel) , Tuple.second model.ball.vel)
