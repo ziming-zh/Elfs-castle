@@ -6200,11 +6200,21 @@ var $author$project$Update$updateBall = function (_v0) {
 			}),
 		$elm$core$Platform$Cmd$none);
 };
+var $author$project$Update$updateTime = function (_v0) {
+	var model = _v0.a;
+	var cmd = _v0.b;
+	return _Utils_Tuple2(
+		_Utils_update(
+			model,
+			{time: model.time + 0.2}),
+		cmd);
+};
 var $author$project$Update$updateGame = function (model) {
 	return (model.isDead || model.paused) ? _Utils_Tuple2(model, $elm$core$Platform$Cmd$none) : $author$project$Update$moveplate(
 		$author$project$Update$ballHitTheBrick(
 			$author$project$Update$updateBall(
-				_Utils_Tuple2(model, $elm$core$Platform$Cmd$none))));
+				$author$project$Update$updateTime(
+					_Utils_Tuple2(model, $elm$core$Platform$Cmd$none)))));
 };
 var $author$project$Update$updatePlate1 = F2(
 	function (key, model) {
@@ -6309,43 +6319,63 @@ var $author$project$View$gety = function (y) {
 var $elm$svg$Svg$Attributes$height = _VirtualDom_attribute('height');
 var $elm$svg$Svg$trustedNode = _VirtualDom_nodeNS('http://www.w3.org/2000/svg');
 var $elm$svg$Svg$svg = $elm$svg$Svg$trustedNode('svg');
+var $author$project$View$Pacman$FanShape = F4(
+	function (offset, percentage, color, pos) {
+		return {color: color, offset: offset, percentage: percentage, pos: pos};
+	});
+var $elm$core$Basics$atan = _Basics_atan;
+var $elm$core$Basics$pi = _Basics_pi;
+var $elm$core$Basics$round = _Basics_round;
+var $elm$svg$Svg$circle = $elm$svg$Svg$trustedNode('circle');
 var $elm$svg$Svg$Attributes$cx = _VirtualDom_attribute('cx');
 var $elm$svg$Svg$Attributes$cy = _VirtualDom_attribute('cy');
-var $elm$svg$Svg$ellipse = $elm$svg$Svg$trustedNode('ellipse');
 var $elm$svg$Svg$Attributes$fill = _VirtualDom_attribute('fill');
-var $elm$svg$Svg$Attributes$rx = _VirtualDom_attribute('rx');
-var $elm$svg$Svg$Attributes$ry = _VirtualDom_attribute('ry');
-var $author$project$View$drawcir = F3(
-	function (_v0, r, color) {
-		var x = _v0.a;
-		var y = _v0.b;
-		return A2(
-			$elm$svg$Svg$ellipse,
-			_List_fromArray(
-				[
-					$elm$svg$Svg$Attributes$cx(
-					$author$project$View$getx(x)),
-					$elm$svg$Svg$Attributes$cy(
-					$author$project$View$gety(y)),
-					$elm$svg$Svg$Attributes$rx(
-					$author$project$View$getx(r)),
-					$elm$svg$Svg$Attributes$ry(
-					$author$project$View$gety(r)),
-					$elm$svg$Svg$Attributes$fill(color)
-				]),
-			_List_Nil);
-	});
+var $elm$svg$Svg$Attributes$fillOpacity = _VirtualDom_attribute('fill-opacity');
+var $elm$svg$Svg$Attributes$r = _VirtualDom_attribute('r');
+var $elm$svg$Svg$Attributes$stroke = _VirtualDom_attribute('stroke');
+var $elm$svg$Svg$Attributes$strokeDasharray = _VirtualDom_attribute('stroke-dasharray');
+var $elm$svg$Svg$Attributes$strokeDashoffset = _VirtualDom_attribute('stroke-dashoffset');
+var $elm$svg$Svg$Attributes$strokeWidth = _VirtualDom_attribute('stroke-width');
+var $elm$core$Debug$toString = _Debug_toString;
+var $author$project$View$Pacman$viewFanShape = function (fanShape) {
+	var strokeDashoffset_ = $elm$core$String$fromFloat(25.0 - fanShape.offset);
+	var strokeDasharray_ = $elm$core$String$fromFloat(fanShape.percentage) + (' ' + $elm$core$String$fromFloat(100.0 - fanShape.percentage));
+	return A2(
+		$elm$svg$Svg$circle,
+		_List_fromArray(
+			[
+				$elm$svg$Svg$Attributes$cx(
+				$elm$core$Debug$toString(fanShape.pos.a)),
+				$elm$svg$Svg$Attributes$cy(
+				$elm$core$Debug$toString(fanShape.pos.b)),
+				$elm$svg$Svg$Attributes$r('15'),
+				$elm$svg$Svg$Attributes$fill('#ffffff'),
+				$elm$svg$Svg$Attributes$fillOpacity('0.0'),
+				$elm$svg$Svg$Attributes$stroke(fanShape.color),
+				$elm$svg$Svg$Attributes$strokeWidth('30'),
+				$elm$svg$Svg$Attributes$strokeDashoffset(strokeDashoffset_),
+				$elm$svg$Svg$Attributes$strokeDasharray(strokeDasharray_)
+			]),
+		_List_Nil);
+};
 var $author$project$View$viewBall = F2(
 	function (model, ball) {
-		return A3(
-			$author$project$View$drawcir,
-			_Utils_Tuple2(ball.pos.a, ball.pos.b),
-			15,
-			'#FFEC8B');
+		var percentage = _Utils_eq(
+			$elm$core$Basics$round(
+				$elm$core$Basics$round(model.time) / 2),
+			$elm$core$Basics$round(
+				$elm$core$Basics$round(model.time - 1) / 2)) ? 0.75 : 0.9;
+		var neg = function (num) {
+			return (num > 0) ? 1 : 0;
+		};
+		var _v0 = ball.vel;
+		var vx = _v0.a;
+		var vy = _v0.b;
+		var offset = ((($elm$core$Basics$atan(vy / vx) / (2 * $elm$core$Basics$pi)) + ((1 / 2) * neg(vx))) + ((1 - percentage) / 2)) + ((-1) / 4);
+		var fanshapes = A4($author$project$View$Pacman$FanShape, offset * 100, percentage * 100, 'black', ball.pos);
+		return $author$project$View$Pacman$viewFanShape(fanshapes);
 	});
 var $elm$svg$Svg$rect = $elm$svg$Svg$trustedNode('rect');
-var $elm$svg$Svg$Attributes$stroke = _VirtualDom_attribute('stroke');
-var $elm$svg$Svg$Attributes$strokeWidth = _VirtualDom_attribute('stroke-width');
 var $elm$svg$Svg$Attributes$width = _VirtualDom_attribute('width');
 var $elm$svg$Svg$Attributes$x = _VirtualDom_attribute('x');
 var $elm$svg$Svg$Attributes$y = _VirtualDom_attribute('y');

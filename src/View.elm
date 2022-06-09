@@ -8,6 +8,7 @@ import Html exposing (..)
 import Html.Attributes as HtmlAttr exposing (..)
 import Color exposing (Color)
 import Markdown
+import View.Pacman as View
 getx : Float -> String
 getx x  = 
     String.fromFloat (x)
@@ -224,13 +225,28 @@ viewBlocks model blocks =
     List.map drawBlocks blocks 
 
 
+
 drawcir : ( Float , Float ) -> Float -> String -> Html Msg
 drawcir (x,y)  r color =
     
     Svg.ellipse [ SvgAttr.cx (getx x ), SvgAttr.cy (gety y ), SvgAttr.rx (getx r) , SvgAttr.ry (gety r ) ,  SvgAttr.fill color ][] 
-    
-   {- Svg.circle [ SvgAttr.cx (getx x xx), SvgAttr.cy (gety y yy), SvgAttr.r (getr r yy) , SvgAttr.fill color ][] -}
-{- (x,y) : center point , (xx,yy) : windows size -}
+    {- (x,y) : center point , (xx,yy) : windows size -}
 viewBall : Model -> Ball -> Html Msg
 viewBall model ball =
-    drawcir ( Tuple.first ball.pos , Tuple.second ball.pos ) 15 "#FFEC8B"
+    -- drawcir ( Tuple.first ball.pos , Tuple.second ball.pos ) 15 "#FFEC8B"
+    -- View.pacman model
+    let
+        (vx,vy) =ball.vel
+        neg num = 
+            if num > 0 then 1
+            else 0
+        
+        percentage = 
+            if round (toFloat(round model.time)/2) == round (toFloat(round (model.time-1))/2)
+                then 0.75
+            else 0.9
+        offset = atan (vy/vx) / (2*pi)+  1/2*(neg vx)+ (1-percentage)/2 +(-1/4)
+       
+        fanshapes = View.FanShape (offset*100) (percentage*100) "black" ball.pos
+    in
+       View.viewFanShape fanshapes

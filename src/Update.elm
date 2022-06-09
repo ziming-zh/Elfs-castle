@@ -71,6 +71,9 @@ updateBall ( model , cmd ) =
                               vel = model.ball.vel }
           } , Cmd.none)
 
+updateTime : ( Model , Cmd Msg ) -> ( Model , Cmd Msg )
+updateTime ( model , cmd ) = 
+    ({model| time = model.time+0.2},cmd)
 
 updateGame : Model -> ( Model , Cmd Msg )
 updateGame model = 
@@ -78,6 +81,7 @@ updateGame model =
         ( model, Cmd.none)
     else
         ( model, Cmd.none)
+            |> updateTime
             |> updateBall
             |> ballHitTheBrick
             |> moveplate
