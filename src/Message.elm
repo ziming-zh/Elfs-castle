@@ -9,3 +9,6 @@ type Msg
     | Tick Float
     | GetViewport Viewport
     | Resize Int Int
+    | Start
+    | Pause
+    | Resume

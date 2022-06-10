@@ -24,6 +24,11 @@ All notable changes to this project are documented in this file.
 #[2.3] -- {2022/6/8}  Added
 - Adjust paddle-moving
 - Fixed the bug that the ball can't conllide correctly with paddle
+- Let game's size adapt to the window's size
+
+#[2.4] -- {2022/6/9}  Added
+- Redesign the picture and add the UI to demonstrate score and control button
+- Add lose detect and score count
 
 #[version] -- {Date}
 	Added

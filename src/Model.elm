@@ -4,12 +4,13 @@ type alias Model =
     { time : Float
     , windowsize : ( Float, Float )
     , ball : Ball
-    , isDead : Bool
     , bricks : Bricks
     , plate : Plate
     , bounce : Bool
-    , paused : Bool
+    , state : State
+    , score : Int
     }
+
 
 type alias Plate = 
     { state : Dir
@@ -33,6 +34,11 @@ type alias Bricks =
 type alias Block = 
     ( Float , Float )
 
+type State
+    = Paused
+    | Playing
+    | GG
+    
 type ArrowKey
     = NoKey
     | Space
@@ -48,13 +54,13 @@ type Dir
     
 initBall : Ball
 initBall = 
-    Ball (500, 455) ( 3 , -3 )
+    Ball (300, 565) ( 3 , -3 )
 
 initBricks : Bricks
 initBricks = 
     let
-        rows = List.map (\x -> (toFloat x)) (List.map (\x ->  x*100) (List.range 0 9))
-        cols = List.map (\x -> (toFloat x)) (List.map (\x ->  x*21) (List.range 0 3))
+        rows = List.map (\x -> (toFloat x)) (List.map (\x ->  x*60+5) (List.range 0 9))
+        cols = List.map (\x -> (toFloat x)) (List.map (\x ->  x*60+50) (List.range 0 5))
         line =
             \y -> List.map (\x -> Tuple.pair x y) rows
     in
@@ -62,11 +68,12 @@ initBricks =
             |> List.concat
 
 initPlate : Plate
-initPlate = Plate None 425
+initPlate = Plate None 250
+
 
 model_init : Model
 model_init = 
-    Model 0 ( 1000, 500 ) initBall False initBricks initPlate False False
+    Model 0 ( 1396, 691 ) initBall initBricks initPlate False Playing 0
 
 
 

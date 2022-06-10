@@ -8,12 +8,12 @@ update msg model =
     case msg of
         Tick elapsed ->
             updateGame model
-        ArrowPressed Space ->
-            ( { model | paused = not model.paused }, Cmd.none )
-        ArrowPressed arrow ->
-            ( updatePlate1 arrow model , Cmd.none )
-        ArrowReleased arrow ->
-            ( updatePlate2 arrow model , Cmd.none )
+        
+        Resize width height ->
+            ( { model | windowsize = ( toFloat width, toFloat height ) }
+            , Cmd.none
+            )
+
         GetViewport { viewport } ->
             ( { model
                 | windowsize =
@@ -22,24 +22,34 @@ update msg model =
                     )
               }
             , Cmd.none ) 
-        _ ->
-            ( model , Cmd.none )
-            
-{-
-    case msg of
 
+        ArrowPressed Space ->
+            ( { model | state = 
+                if model.state == Playing then Paused
+                else if model.state == Paused then Playing 
+                else GG }, Cmd.none )
 
+        ArrowPressed arrow ->
+            ( updatePlate1 arrow model , Cmd.none )
 
-        Resize wid hei ->
-            ( { model
-                | windowsize =
-                    ( toFloat wid
-                    , toFloat hei
-                    )
-              }
-            , Cmd.none
-            )
--}
+        ArrowReleased arrow ->
+            ( updatePlate2 arrow model , Cmd.none )
+
+        Start ->
+            ( model_init , Cmd.none )
+
+        Pause ->
+            ( { model | state = Paused } , Cmd.none )
+        
+        Resume ->
+            ( { model | state = Playing } , Cmd.none )
+
+     {-   _ ->
+            ( model , Cmd.none ) -}
+
+updateTime : ( Model , Cmd Msg ) -> ( Model , Cmd Msg )
+updateTime ( model , cmd ) = 
+    ({model| time = model.time+0.2},cmd)
 
 updatePlate2 : ArrowKey -> Model -> Model
 updatePlate2 key model = 
@@ -62,7 +72,7 @@ moveplate ( model , cmd ) =
         lpos = model.plate.pos
         npos = 
             if model.plate.state == Left then Basics.max (lpos-5) 0
-            else if model.plate.state == Right then Basics.min (lpos+5) 850
+            else if model.plate.state == Right then Basics.min (lpos+5) 450
             else lpos
     in
         ( { model | plate = { state = model.plate.state , pos = npos } } , Cmd.none )
@@ -71,21 +81,25 @@ updateBall : ( Model , Cmd Msg ) -> ( Model , Cmd Msg )
 updateBall ( model , cmd ) = 
     let
         ( vx , vy ) = model.ball.vel
-
+        npos = ( (Tuple.first model.ball.pos) + vx , (Tuple.second model.ball.pos) + vy )
+        nmodel = 
+            if Tuple.second model.ball.pos <= 850 then
+                { model | ball = { pos = npos , vel = model.ball.vel } }
+            else    
+                { model | state = GG }
     in
-        ( { model | ball =  { pos = ( (Tuple.first model.ball.pos) + vx , (Tuple.second model.ball.pos) + vy ),  
-                              vel = model.ball.vel }
-          } , Cmd.none)
+        ( nmodel , Cmd.none)
 
 
 updateGame : Model -> ( Model , Cmd Msg )
 updateGame model = 
-    if model.isDead || model.paused then
+    if model.state == Paused || model.state == GG then
         ( model, Cmd.none)
     else
         ( model, Cmd.none)
-            |> updateBall
+            |> updateTime
             |> ballHitTheBrick
+            |> updateBall
             |> moveplate
         {-    |> ballHitTheBrick
             |> ballAtTheEdge
@@ -102,8 +116,8 @@ pointadd (dx,dy) (x,y) =
 
 getlines : Bricks -> List Line
 getlines list1 = 
-    List.concat [ List.map (pointtoline (100,0)) list1 , List.map (pointtoline (0,20)) list1 , 
-        List.map (pointtoline(100,0)) (List.map (pointadd (0,20)) list1) , List.map (pointtoline (0,20)) (List.map (pointadd(100,0)) list1) ]
+    List.concat [ List.map (pointtoline (50,0)) list1 , List.map (pointtoline (0,50)) list1 , 
+        List.map (pointtoline(50,0)) (List.map (pointadd (0,50)) list1) , List.map (pointtoline (0,50)) (List.map (pointadd(50,0)) list1) ]
 
 collide : ( Float , Float ) -> ( Float , Float ) -> ( Float , Float ) -> Line -> Bool
 collide (lx,ly) (nx,ny) (a,b) line =
@@ -128,9 +142,15 @@ updateBrike : ( Float , Float ) -> ( Float , Float ) -> List Block -> ( Model , 
 updateBrike (lx,ly) (nx,ny) list1 (model,cmd) =
     let
         nbrick = List.filter (checkbrike (lx,ly) (nx,ny)) list1
+        nscore = ((List.length model.bricks) - (List.length nbrick))*100 + model.score
 
     in
-        ( { model | bricks = nbrick } , Cmd.none )
+        ( { model | bricks = nbrick , score = nscore } , Cmd.none )
+
+setbottomLine : Float
+setbottomLine = 780.0
+
+
 
 ballHitTheBrick : ( Model , Cmd Msg ) -> ( Model, Cmd Msg)
 ballHitTheBrick ( model , cmd ) =
@@ -141,39 +161,32 @@ ballHitTheBrick ( model , cmd ) =
         ly = Tuple.second (lball.pos)
         nx = lx + Tuple.first (lball.vel)
         ny = ly + Tuple.second (lball.vel)
+        bottomline = setbottomLine
+
         -- twist the velocity direction
-        lines = List.concat [[pointtoline (150,0) (model.plate.pos,470)],getlines model.bricks,[{p1=(1000,0),p2=(1000,500)},{p1=(0,0),p2=(1000,0)},{p1=(0,0),p2=(0,500)}]]
-        
-        line = List.concat [getlines model.bricks,[{p1=(1000,0),p2=(1000,500)},{p1=(0,0),p2=(1000,0)},{p1=(0,0),p2=(0,500)}]]
+        lines = List.concat [[pointtoline (150,0) (model.plate.pos,bottomline)],getlines model.bricks,[{p1=(600,0),p2=(600,bottomline)},{p1=(0,0),p2=(600,0)},{p1=(0,0),p2=(0,bottomline)}]]
+    --    lines = List.concat [[pointtoline (600,0) (0,780)],getlines model.bricks,[{p1=(600,0),p2=(600,bottomline)},{p1=(0,0),p2=(600,0)},{p1=(0,0),p2=(0,bottomline)}]]
+
+        line = List.concat [getlines model.bricks,[{p1=(bottomline,0),p2=(bottomline,570)},{p1=(0,0),p2=(bottomline,0)},{p1=(0,0),p2=(0,bottomline)}]]
 
         nvel1 = ( Tuple.first model.ball.vel , -(Tuple.second model.ball.vel ))
         nvel2 = ( -(Tuple.first model.ball.vel) , Tuple.second model.ball.vel)
+        nball1 = { pos = model.ball.pos , vel = nvel1 }
+        nball2 = { pos = model.ball.pos , vel = nvel2 }
     in
         if List.any (collide (lx,ly+15) (nx,ny+15) (1,0)) lines then
-            ( { model | 
-                ball = { pos = model.ball.pos , vel = nvel1 } 
-              }
-             , Cmd.none ) 
-             |> (updateBrike (lx,ly+15) (nx,ny+15) model.bricks)
+            ( { model | ball = nball1 } , Cmd.none ) 
+                |> (updateBrike (lx,ly+15) (nx,ny+15) model.bricks)
         else  
         if List.any (collide (lx,ly-15) (nx,ny-15) (1,0)) line then
-            ( { model | 
-                ball = { pos = model.ball.pos , vel = nvel1 } 
-              }
-             , Cmd.none )
-             |> (updateBrike (lx,ly-15) (nx,ny-15) model.bricks)
+            ( { model | ball = nball1 } , Cmd.none )
+                |> (updateBrike (lx,ly-15) (nx,ny-15) model.bricks)
         else  
         if List.any (collide (lx+15,ly) (nx+15,ny) (0,1)) lines then
-            ( { model | 
-                ball = { pos = model.ball.pos , vel = nvel2 } 
-              }
-             , Cmd.none )
-             |> (updateBrike (lx+5,ly) (nx+15,ny) model.bricks)
+            ( { model | ball = nball2 } , Cmd.none )
+                |> (updateBrike (lx+5,ly) (nx+15,ny) model.bricks)
         else 
         if List.any (collide (lx-15,ly) (nx-15,ny) (0,1)) lines then
-            ( { model | 
-                ball = { pos = model.ball.pos , vel = nvel2  } 
-              }
-             , Cmd.none )
-             |> (updateBrike (lx-15,ly) (nx-15,ny) model.bricks)
+            ( { model | ball = nball2 } , Cmd.none )
+                |> (updateBrike (lx-15,ly) (nx-15,ny) model.bricks)
         else ( model , Cmd.none )
