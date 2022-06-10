@@ -46,7 +46,11 @@ update msg model =
 
      {-   _ ->
             ( model , Cmd.none ) -}
-            
+
+updateTime : ( Model , Cmd Msg ) -> ( Model , Cmd Msg )
+updateTime ( model , cmd ) = 
+    ({model| time = model.time+0.2},cmd)
+
 updatePlate2 : ArrowKey -> Model -> Model
 updatePlate2 key model = 
     if model.plate.state == Left && key == LeftKey then { model | plate = { state = None , pos =  model.plate.pos } }
@@ -93,6 +97,7 @@ updateGame model =
         ( model, Cmd.none)
     else
         ( model, Cmd.none)
+            |> updateTime
             |> ballHitTheBrick
             |> updateBall
             |> moveplate
