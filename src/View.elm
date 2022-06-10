@@ -3,13 +3,15 @@ import Svg exposing (Svg, Attribute, svg, rect, defs, filter, feGaussianBlur, fe
 {-import Svg.Attributes exposing (width, height, viewBox, x, y, rx, fill, id, stdDeviation, result)-}
 import Svg.Attributes as SvgAttr
 import Message exposing (Msg(..))
-import Model exposing (Model,Block,Ball,Plate,State)
+import Model exposing (Model,Bricks,Ball,Plate,State)
 import Html exposing (..)
 import Html.Attributes as HtmlAttr exposing (..)
 import Html.Events exposing (onClick)
 import Color exposing (Color)
 import Markdown
 import View.Pacman as View
+import Model exposing (getBrickPos)
+import Color exposing (BallColor(..),NormalColor(..),type2color)
 getx : Float -> String
 getx x  = 
     String.fromFloat (x)
@@ -73,7 +75,7 @@ renderPanel model =
         , renderCount  model.score
      --   , renderCountt  (Tuple.first model.windowsize)
       --  , renderCountt  (Tuple.second model.windowsize)
-        , renderEnd model.state "GG~~!!"
+        , renderEnd model.state "The Elf is Upset! Please Try Again!"
         , renderGameButton model.state
         ]
 
@@ -236,7 +238,7 @@ renderGame model =
     ([viewPlate model model.plate
         ,viewBall model model.ball]
         ++
-        (viewBlocks model model.bricks))
+        (viewBlocks model.bricks))
 
 
 
@@ -254,14 +256,14 @@ viewPlate model plate =
 
 
 
-drawBlocks : ( Float , Float ) -> Html Msg
-drawBlocks  ( x , y ) = 
-    drawreac (x, y) (50,50)  "#00CDCD"
+drawBlocks : ((Float,Float) , NormalColor) -> Html Msg
+drawBlocks  ((x,y),normalcolor) = 
+    drawreac (x, y) (50,50)  (type2color (Normal normalcolor))
 
 
-viewBlocks : Model -> List Block -> List (Html Msg)
-viewBlocks model blocks =
-    List.map drawBlocks blocks 
+viewBlocks : Bricks -> List (Html Msg)
+viewBlocks blocks =
+    List.map drawBlocks blocks
 
 
 drawcir : ( Float , Float ) -> Float -> String -> Html Msg
@@ -287,6 +289,6 @@ viewBall model ball =
             else 0.9
         offset = atan (vy/vx) / (2*pi)+  1/2*(neg vx)+ (1-percentage)/2 +(-1/4)
        
-        fanshapes = View.FanShape (offset*100) (percentage*100) "black" ball.pos
+        fanshapes = View.FanShape (offset*100) (percentage*100) (type2color ball.color) ball.pos
     in
        View.viewFanShape fanshapes

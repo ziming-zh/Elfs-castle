@@ -1,6 +1,9 @@
 module Update exposing (..)
 import Message exposing (Msg(..))
 import Model exposing (..)
+import Color exposing (BallColor)
+import Color exposing (BallColor(..))
+import Color exposing (NormalColor(..))
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -8,7 +11,6 @@ update msg model =
     case msg of
         Tick elapsed ->
             updateGame model
-        
         Resize width height ->
             ( { model | windowsize = ( toFloat width, toFloat height ) }
             , Cmd.none
@@ -46,6 +48,25 @@ update msg model =
 
      {-   _ ->
             ( model , Cmd.none ) -}
+updateChar : ( Model, Cmd Msg) -> (Model, Cmd Msg)
+updateChar (model ,cmd ) =
+    let
+        ball = model.ball
+        energy = ball.energy
+        mp = ball.mp
+        newEnergyval = ball.energy.val - 25
+        newMpval =
+            if (ball.mp.val < (ball.mp.max+(-25))) then 
+                ball.mp.val + 25
+            else 
+                ball.mp.max
+        newBall = {ball | energy = {energy | val = newEnergyval} , mp = { mp| val = newMpval}}
+
+    in
+        ({model | ball = newBall}, cmd)
+    
+
+        
 
 updateTime : ( Model , Cmd Msg ) -> ( Model , Cmd Msg )
 updateTime ( model , cmd ) = 
@@ -81,10 +102,11 @@ updateBall : ( Model , Cmd Msg ) -> ( Model , Cmd Msg )
 updateBall ( model , cmd ) = 
     let
         ( vx , vy ) = model.ball.vel
+        ball = model.ball
         npos = ( (Tuple.first model.ball.pos) + vx , (Tuple.second model.ball.pos) + vy )
         nmodel = 
             if Tuple.second model.ball.pos <= 850 then
-                { model | ball = { pos = npos , vel = model.ball.vel } }
+                { model | ball = { ball| pos = npos , vel = model.ball.vel } }
             else    
                 { model | state = GG }
     in
@@ -98,6 +120,7 @@ updateGame model =
     else
         ( model, Cmd.none)
             |> updateTime
+            |> updateChar
             |> ballHitTheBrick
             |> updateBall
             |> moveplate
@@ -116,8 +139,8 @@ pointadd (dx,dy) (x,y) =
 
 getlines : Bricks -> List Line
 getlines list1 = 
-    List.concat [ List.map (pointtoline (50,0)) list1 , List.map (pointtoline (0,50)) list1 , 
-        List.map (pointtoline(50,0)) (List.map (pointadd (0,50)) list1) , List.map (pointtoline (0,50)) (List.map (pointadd(50,0)) list1) ]
+    List.concat [ List.map (pointtoline (50,0)) (getBrickPos list1) , List.map (pointtoline (0,50)) (getBrickPos list1) , 
+        List.map (pointtoline(50,0)) (List.map (pointadd (0,50)) (getBrickPos list1)) , List.map (pointtoline (0,50)) (List.map (pointadd(50,0)) (getBrickPos list1)) ]
 
 collide : ( Float , Float ) -> ( Float , Float ) -> ( Float , Float ) -> Line -> Bool
 collide (lx,ly) (nx,ny) (a,b) line =
@@ -142,7 +165,9 @@ updateBrike : ( Float , Float ) -> ( Float , Float ) -> List Block -> ( Model , 
 updateBrike (lx,ly) (nx,ny) list1 (model,cmd) =
     let
         nbrick = List.filter (checkbrike (lx,ly) (nx,ny)) list1
+
         nscore = ((List.length model.bricks) - (List.length nbrick))*100 + model.score
+
 
     in
         ( { model | bricks = nbrick , score = nscore } , Cmd.none )
@@ -150,7 +175,15 @@ updateBrike (lx,ly) (nx,ny) list1 (model,cmd) =
 setbottomLine : Float
 setbottomLine = 780.0
 
-
+updateBallColor : BallColor -> BallColor
+updateBallColor color = 
+    case color of
+        Normal normalcolor ->
+            case normalcolor of
+                Purple -> Normal Yellow
+                Yellow -> Normal Blue
+                Blue -> Normal Purple
+        _ -> color
 
 ballHitTheBrick : ( Model , Cmd Msg ) -> ( Model, Cmd Msg)
 ballHitTheBrick ( model , cmd ) =
@@ -162,17 +195,15 @@ ballHitTheBrick ( model , cmd ) =
         nx = lx + Tuple.first (lball.vel)
         ny = ly + Tuple.second (lball.vel)
         bottomline = setbottomLine
-
         -- twist the velocity direction
         lines = List.concat [[pointtoline (150,0) (model.plate.pos,bottomline)],getlines model.bricks,[{p1=(600,0),p2=(600,bottomline)},{p1=(0,0),p2=(600,0)},{p1=(0,0),p2=(0,bottomline)}]]
-    --    lines = List.concat [[pointtoline (600,0) (0,780)],getlines model.bricks,[{p1=(600,0),p2=(600,bottomline)},{p1=(0,0),p2=(600,0)},{p1=(0,0),p2=(0,bottomline)}]]
-
         line = List.concat [getlines model.bricks,[{p1=(bottomline,0),p2=(bottomline,570)},{p1=(0,0),p2=(bottomline,0)},{p1=(0,0),p2=(0,bottomline)}]]
 
+        changedcolor = updateBallColor lball.color
         nvel1 = ( Tuple.first model.ball.vel , -(Tuple.second model.ball.vel ))
         nvel2 = ( -(Tuple.first model.ball.vel) , Tuple.second model.ball.vel)
-        nball1 = { pos = model.ball.pos , vel = nvel1 }
-        nball2 = { pos = model.ball.pos , vel = nvel2 }
+        nball1 = { lball | pos = model.ball.pos , vel = nvel1 , color = changedcolor }
+        nball2 = { lball | pos = model.ball.pos , vel = nvel2 , color = changedcolor }
     in
         if List.any (collide (lx,ly+15) (nx,ny+15) (1,0)) lines then
             ( { model | ball = nball1 } , Cmd.none ) 
