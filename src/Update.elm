@@ -4,6 +4,7 @@ import Model exposing (..)
 import Color exposing (BallColor)
 import Color exposing (BallColor(..))
 import Color exposing (NormalColor(..))
+import Levels exposing (Condition)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -38,7 +39,7 @@ update msg model =
             ( updatePlate2 arrow model , Cmd.none )
 
         Start ->
-            ( model_init , Cmd.none )
+            ( model_init 2 , Cmd.none )
 
         Pause ->
             ( { model | state = Paused } , Cmd.none )
@@ -56,10 +57,13 @@ updateChar (model ,cmd ) =
         mp = ball.mp
         newEnergyval = ball.energy.val - 25
         newMpval =
-            if (ball.mp.val < (ball.mp.max+(-25))) then 
-                ball.mp.val + 25
-            else 
-                ball.mp.max
+            case ball.color of 
+                Red x ->  ball.mp.val - 0.1
+                _  ->
+                    if (ball.mp.val < (ball.mp.max+(-0.01))) then 
+                        ball.mp.val + 0.01
+                    else 
+                        ball.mp.max
         newBall = {ball | energy = {energy | val = newEnergyval} , mp = { mp| val = newMpval}}
 
     in
@@ -108,10 +112,50 @@ updateBall ( model , cmd ) =
             if Tuple.second model.ball.pos <= 850 then
                 { model | ball = { ball| pos = npos , vel = model.ball.vel } }
             else    
-                { model | state = GG }
+                if model.live == 0 then { model | state = GG }
+                else 
+                    case model.level.id of 
+                        1 -> model_level1 { model | live = model.live-1 }
+                        2 -> model_level2 { model | live = model.live-1 }
+                        3 -> model_level3 { model | live = model.live-1 }
+                        _ -> model
     in
         ( nmodel , Cmd.none)
 
+updatelevel : ( Model , Cmd Msg ) -> ( Model , Cmd Msg )
+updatelevel ( model , cmd ) = 
+    let
+        (x,y,z) = model.level.pass
+    in
+        if x <= 0 && y <= 0 && z <= 0 then 
+            if model.level.id == 1 then ( model_level2 model , Cmd.none )
+            else ( model_level3 model , Cmd.none )
+        else
+            ( model , Cmd.none )
+
+updateState : ( Model , Cmd Msg ) -> ( Model , Cmd Msg )
+updateState ( model , cmd ) =
+    if model.ball.mp.val == model.ball.mp.max then
+        let
+            lball = model.ball
+            nball = 
+                case lball.color of 
+                    Red x -> lball
+                    Normal x -> { lball | color = Red x }
+        in
+            ( { model | ball = nball } , Cmd.none )
+    else 
+    if model.ball.mp.val <= 0 then
+        case model.ball.color of 
+            Red x -> 
+                let
+                    lball = model.ball
+                    nball = { lball | color = Normal x }
+                in
+                    ( { model | ball = nball } , Cmd.none )
+            _ -> ( model , Cmd.none )
+    else
+        ( model , Cmd.none )
 
 updateGame : Model -> ( Model , Cmd Msg )
 updateGame model = 
@@ -121,9 +165,12 @@ updateGame model =
         ( model, Cmd.none)
             |> updateTime
             |> updateChar
+            |> updateState
             |> ballHitTheBrick
             |> updateBall
             |> moveplate
+            |> updatelevel
+            
         {-    |> ballHitTheBrick
             |> ballAtTheEdge
             |> ballAtTheBottom
@@ -183,41 +230,90 @@ updateBallColor color =
                 Purple -> Normal Yellow
                 Yellow -> Normal Blue
                 Blue -> Normal Purple
+                Black -> Normal Black
         _ -> color
+
+updatePass : Model -> ( List Line -> Bool ) -> List Line -> List Line -> List Line -> Condition
+updatePass model check liney lineb linep =
+    let 
+        ( yellow , blue , purple ) = model.level.pass
+        nyellow = 
+            if check liney then (yellow-1)
+            else yellow
+        nblue = 
+            if check lineb then (blue-1)
+            else blue
+        npurple = 
+            if check linep then (purple-1)
+            else purple
+    in
+        case model.ball.color of
+            Red x -> ( nyellow , nblue , npurple )
+            Normal color ->
+                case color of 
+                    Blue -> ( yellow , nblue , purple )
+                    Yellow -> ( nyellow , blue , purple)
+                    Purple -> ( yellow , blue , npurple )
+                    Black -> model.level.pass
 
 ballHitTheBrick : ( Model , Cmd Msg ) -> ( Model, Cmd Msg)
 ballHitTheBrick ( model , cmd ) =
     let
         lball =
             model.ball
-        lx = Tuple.first (lball.pos)
-        ly = Tuple.second (lball.pos)
-        nx = lx + Tuple.first (lball.vel)
-        ny = ly + Tuple.second (lball.vel)
+        ( lx , ly ) = ( Tuple.first (lball.pos) , Tuple.second (lball.pos) )
+
+        ( nx , ny ) = ( lx + Tuple.first (lball.vel) , ly + Tuple.second (lball.vel) )
         bottomline = setbottomLine
         -- twist the velocity direction
-        lines = List.concat [[pointtoline (150,0) (model.plate.pos,bottomline)],getlines model.bricks,[{p1=(600,0),p2=(600,bottomline)},{p1=(0,0),p2=(600,0)},{p1=(0,0),p2=(0,bottomline)}]]
-        line = List.concat [getlines model.bricks,[{p1=(bottomline,0),p2=(bottomline,570)},{p1=(0,0),p2=(bottomline,0)},{p1=(0,0),p2=(0,bottomline)}]]
-
-        changedcolor = updateBallColor lball.color
+        lineb = getlines ( List.filter (\block -> (Tuple.second block) == Blue) model.bricks ) 
+        
+        linep = getlines ( List.filter (\block -> (Tuple.second block) == Purple) model.bricks ) 
+        liney = getlines ( List.filter (\block -> (Tuple.second block) == Yellow) model.bricks ) 
+        lineball = List.concat [lineb,linep,liney] 
+        line = List.concat [lineball,[{p1=(600,0),p2=(600,780)},{p1=(0,0),p2=(600,0)},{p1=(0,0),p2=(0,780)}]]
+        lines = List.concat [[pointtoline (150,0) (model.plate.pos,780)],line]
+        --lines = List.concat [[pointtoline (600,0) (0,780)],line]
         nvel1 = ( Tuple.first model.ball.vel , -(Tuple.second model.ball.vel ))
         nvel2 = ( -(Tuple.first model.ball.vel) , Tuple.second model.ball.vel)
-        nball1 = { lball | pos = model.ball.pos , vel = nvel1 , color = changedcolor }
-        nball2 = { lball | pos = model.ball.pos , vel = nvel2 , color = changedcolor }
+        up = List.any (collide (lx,ly+15) (nx,ny+15) (1,0))
+        down = List.any (collide (lx,ly-15) (nx,ny-15) (1,0)) 
+        right =  List.any (collide (lx+15,ly) (nx+15,ny) (0,1)) 
+        left =  List.any (collide (lx-15,ly) (nx-15,ny) (0,1)) 
+        alldir = (\x -> ( up x || down x || right x || left x ) )
+
+        npass = updatePass model alldir liney lineb linep
+        nlevel = { id = model.level.id , map = model.level.map , pass = npass , speed = model.level.speed }
+        ncolor = 
+            case lball.color of
+                Red x -> model.ball.color
+                _ -> 
+                    if npass == model.level.pass then lball.color
+                    else updateBallColor lball.color
+        nmp = 
+            case model.ball.color of 
+                Red x -> model.ball.mp
+                _ ->
+                    if npass /= model.level.pass then  Property (model.ball.mp.val+20) model.ball.mp.max
+                    else if alldir lineball then Property (model.ball.mp.val+5) model.ball.mp.max
+                    else model.ball.mp
+        nball1 = { lball | mp = nmp , pos = model.ball.pos , vel = nvel1 , color = ncolor }
+            
+        nball2 = { lball | mp = nmp , pos = model.ball.pos , vel = nvel2 , color = ncolor }
     in
-        if List.any (collide (lx,ly+15) (nx,ny+15) (1,0)) lines then
-            ( { model | ball = nball1 } , Cmd.none ) 
+        if up lines then
+            ( { model | level = nlevel , ball = nball1 } , Cmd.none ) 
                 |> (updateBrike (lx,ly+15) (nx,ny+15) model.bricks)
         else  
-        if List.any (collide (lx,ly-15) (nx,ny-15) (1,0)) line then
-            ( { model | ball = nball1 } , Cmd.none )
+        if down line then
+            ( { model | level = nlevel , ball = nball1 } , Cmd.none )
                 |> (updateBrike (lx,ly-15) (nx,ny-15) model.bricks)
         else  
-        if List.any (collide (lx+15,ly) (nx+15,ny) (0,1)) lines then
-            ( { model | ball = nball2 } , Cmd.none )
-                |> (updateBrike (lx+5,ly) (nx+15,ny) model.bricks)
+        if right lines then
+            ( { model | level = nlevel , ball = nball2 } , Cmd.none )
+                |> (updateBrike (lx+15,ly) (nx+15,ny) model.bricks)
         else 
-        if List.any (collide (lx-15,ly) (nx-15,ny) (0,1)) lines then
-            ( { model | ball = nball2 } , Cmd.none )
+        if left lines then
+            ( { model | level = nlevel , ball = nball2 } , Cmd.none )
                 |> (updateBrike (lx-15,ly) (nx-15,ny) model.bricks)
         else ( model , Cmd.none )

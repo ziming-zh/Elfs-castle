@@ -30,6 +30,14 @@ All notable changes to this project are documented in this file.
 - Redesign the picture and add the UI to demonstrate score and control button
 - Add lose detect and score count
 
+#[2.5] -- {2022/6/11} Added
+- Redesign the picture and add more information ( The bricks needed to reach next level、mp ) into UI 
+- Make bricks colorful
+- Adjust the code to make sure our elf only eats the brick with same color
+- Add different levels
+- Add the pattern to let elf become furious and adjust relative functions
+- Add lives for the game and adjust lose detect
+
 #[version] -- {Date}
 	Added
 

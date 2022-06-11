@@ -12,6 +12,8 @@ import Markdown
 import View.Pacman as View
 import Model exposing (getBrickPos)
 import Color exposing (BallColor(..),NormalColor(..),type2color)
+import Levels exposing (Level)
+
 getx : Float -> String
 getx x  = 
     String.fromFloat (x)
@@ -57,6 +59,65 @@ renderGameButton state =
         ]
         [ text txt ]
 
+renderX : String -> Int -> Int -> String -> Html Msg
+renderX str x y color =
+    div 
+        [ style "height" "50px"
+        , style "left" ((String.fromInt x)++"px")
+        , style "position" "relative"
+        , style "top" ("-"++(String.fromInt y)++"px")
+        ]
+        [ renderTxT str color]
+
+renderinfor : Model -> Html Msg
+renderinfor model = 
+    div
+        [ style "bottom" "80px"
+        , style "color" "#34495f"
+        , style "font-family" "Helvetica, Arial, sans-serif"
+        , style "font-size" "14px"
+        , style "left" "-220px"
+        , style "position" "absolute"
+        , style "right" "0"
+        , style "top" "0"
+        ]
+        [ Svg.svg
+            [ SvgAttr.width (getx 300)
+            , SvgAttr.height (gety 700)
+            ]
+            [ drawreac (0,320) (202,1) "#242424" , drawreac (0,320) (1,10) "#242424" , drawreac (0,330) (202,1) "#242424" , drawreac (202,320) (1,10) "#242424"
+            , drawreac (1,321) (model.ball.mp.val*2,8) "#33FFFF"
+            ]
+        ]
+
+renderNeed : Level -> Html Msg
+renderNeed { pass } =
+    let
+        (x,y,z) = pass
+    in
+    div
+        [ style "bottom" "80px"
+        , style "color" "#34495f"
+        , style "font-family" "Helvetica, Arial, sans-serif"
+        , style "font-size" "14px"
+        , style "left" "-150px"
+        , style "position" "absolute"
+        , style "right" "0"
+        , style "top" "0"
+        ]
+        [ Svg.svg
+            [ SvgAttr.width (getx 100)
+            , SvgAttr.height (gety 230)
+            ]
+            [ drawreac (10,50) (50,50) "#FFB266"
+            , drawreac (10,115) (50,50) "#3399FF"
+            , drawreac (10,180) (50,50) "#FF66B2"
+            ]
+            ,renderX "X" 70 210 "#bdc3c7",renderX "X" 70 225 "#bdc3c7",renderX "X" 70 240 "#bdc3c7"
+            ,renderX (String.fromInt (Basics.max 0 x)) 100 450 "242424",renderX (String.fromInt (Basics.max 0 y)) 100 465 "242424"
+            ,renderX (String.fromInt (Basics.max 0 z)) 100 480 "242424"
+        ]
+
 renderPanel : Model -> Html Msg
 renderPanel model =
     div
@@ -71,10 +132,10 @@ renderPanel model =
         , style "top" "0"
         ]
         [ renderTitle "Elf"
-        , renderTxT "Score"
+        , renderTxT "Score" "#bdc3c7"
         , renderCount  model.score
-     --   , renderCountt  (Tuple.first model.windowsize)
-      --  , renderCountt  (Tuple.second model.windowsize)
+        --, renderCountt  model.ball.mp.val
+        --, renderCountt  model.ball.mp.max
         , renderEnd model.state "The Elf is Upset! Please Try Again!"
         , renderGameButton model.state
         ]
@@ -92,11 +153,12 @@ renderTitle txt =
         [ text txt ]
 
 
-renderTxT : String -> Html Msg
-renderTxT txt =
+renderTxT : String -> String -> Html Msg
+renderTxT txt color =
     div
-        [ style "color" "#bdc3c7"
+        [ style "color" color
         , style "font-weight" "700"
+        , style "font-size" "40px"
         , style "line-height" "1"
         , style "margin" "30px 0 0"
         ]
@@ -174,9 +236,7 @@ renderBackground =
         , style "position" "absolute"
         , style "top" "0"
         , style "width" "800px"
-        , style "display"
-        
-                "block"
+       -- , style "display" "block"
         ]
         [ 
         ]
@@ -214,14 +274,16 @@ view model =
             [ div
                 [ HtmlAttr.style "width" (String.fromFloat pixelWidth ++ "px")
                 , HtmlAttr.style "height"  (String.fromFloat pixelHeight ++ "px")
-                , HtmlAttr.style "position" "flex-shrink"
+                , HtmlAttr.style "position" "absolute"
                 , HtmlAttr.style "left" (String.fromFloat ((w - pixelWidth * r) / 2) ++ "px")
                 , HtmlAttr.style "top" (String.fromFloat ((h - pixelHeight * r) / 2) ++ "px")
                 , HtmlAttr.style "transform-origin" "0 0"
                 , HtmlAttr.style "transform" ("scale(" ++ String.fromFloat r ++ ")")
                 ]
                 
-                ([renderPanel model
+                ([renderNeed model.level
+                ,renderinfor model
+                ,renderPanel model
                 ,renderBackground 
                 ,renderGame model       
                 ])

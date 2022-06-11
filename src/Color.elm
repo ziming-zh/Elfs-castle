@@ -13,13 +13,14 @@ toString (Color { red, green, blue }) =
         ++ ")"
 
 type BallColor
-    = Red
+    = Red NormalColor
     | Normal NormalColor
 
 type NormalColor
     = Blue
     | Yellow
     | Purple
+    | Black
 
 type2color : BallColor -> String
 type2color color = 
@@ -29,6 +30,7 @@ type2color color =
                 Blue -> "#3399FF"
                 Yellow -> "#FFB266"
                 Purple -> "#FF66B2"
+                Black -> "#646464"
         _ -> "#FF6666"
 
 

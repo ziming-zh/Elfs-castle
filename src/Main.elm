@@ -5,7 +5,7 @@ import Browser
 
 
 
-import Model exposing (Model,ArrowKey(..),model_init)
+import Model exposing (Model,ArrowKey(..),model_level1,model_level2,model_init)
 
 import Message exposing (Msg(..))
 import Update exposing (update)
@@ -21,7 +21,7 @@ main =
 
 init : () -> ( Model, Cmd Msg )
 init a =
-        ( model_init
+        ( model_init 2
         , Task.perform GetViewport getViewport
         )
 
