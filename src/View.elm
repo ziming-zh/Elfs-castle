@@ -1,16 +1,15 @@
-module View exposing (..)
+module View exposing (view)
 import Svg exposing (Svg, Attribute, svg, rect, defs, filter, feGaussianBlur, feMerge, feMergeNode)
 {-import Svg.Attributes exposing (width, height, viewBox, x, y, rx, fill, id, stdDeviation, result)-}
 import Svg.Attributes as SvgAttr
 import Message exposing (Msg(..))
-import Model exposing (Model,Bricks,Ball,Plate,State)
+import Model exposing (Model,Bricks,Ball,Plate,State,getBrickPos)
 import Html exposing (..)
 import Html.Attributes as HtmlAttr exposing (..)
 import Html.Events exposing (onClick)
 import Color exposing (Color)
 import Markdown
 import View.Pacman as View
-import Model exposing (getBrickPos)
 import Color exposing (BallColor(..),NormalColor(..),type2color)
 import Levels exposing (Level)
 
@@ -69,6 +68,13 @@ renderX str x y color =
         ]
         [ renderTxT str color]
 
+checkstatecolor : Model -> String
+checkstatecolor model= 
+    
+        case model.ball.color of 
+            Red x -> type2color (Red x)
+            _ -> "#33FFFF"
+
 renderinfor : Model -> Html Msg
 renderinfor model = 
     div
@@ -86,7 +92,7 @@ renderinfor model =
             , SvgAttr.height (gety 700)
             ]
             [ drawreac (0,320) (202,1) "#242424" , drawreac (0,320) (1,10) "#242424" , drawreac (0,330) (202,1) "#242424" , drawreac (202,320) (1,10) "#242424"
-            , drawreac (1,321) (model.ball.mp.val*2,8) "#33FFFF"
+            , drawreac (1,321) (model.ball.mp.val*2,8) (checkstatecolor model)
             ]
         ]
 
@@ -114,8 +120,8 @@ renderNeed { pass } =
             , drawreac (10,180) (50,50) "#FF66B2"
             ]
             ,renderX "X" 70 210 "#bdc3c7",renderX "X" 70 225 "#bdc3c7",renderX "X" 70 240 "#bdc3c7"
-            ,renderX (String.fromInt (Basics.max 0 x)) 100 450 "242424",renderX (String.fromInt (Basics.max 0 y)) 100 465 "242424"
-            ,renderX (String.fromInt (Basics.max 0 z)) 100 480 "242424"
+            ,renderX (String.fromInt (Basics.max 0 x)) 100 450 "#242424",renderX (String.fromInt (Basics.max 0 y)) 100 465 "#242424"
+            ,renderX (String.fromInt (Basics.max 0 z)) 100 480 "#242424"
         ]
 
 renderPanel : Model -> Html Msg
@@ -225,17 +231,17 @@ drawreac (x,y) (dx,dy) color =
 renderBackground : Html Msg
 renderBackground =
     div
-        [ style "background" "rgba(236, 240, 241, 0.15)"
+        [ style "background" "rgba(236, 240, 241, 0.3)"
         , style "color" "#34495f"
         , style "font-family" "Helvetica, Arial, sans-serif"
         , style "font-size" "18px"
-        , style "height" "600px"
+        , style "height" "800px"
         , style "left" "0"
         , style "line-height" "1.5"
         , style "padding" "0 15px"
         , style "position" "absolute"
         , style "top" "0"
-        , style "width" "800px"
+        , style "width" "580px"
        -- , style "display" "block"
         ]
         [ 

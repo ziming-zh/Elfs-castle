@@ -1,19 +1,11 @@
 module View.Pacman exposing (FanShape,viewFanShape)
 
-import Svg exposing (Svg, path)
-import Model exposing (Model)
 import Debug exposing (toString)
 import Html exposing (Html)
 import Message exposing (Msg)
 import Html exposing (div)
-import Html exposing (Html, div, text)
-import Html.Attributes exposing (style)
-import List
-import Maybe
 import Svg exposing (svg, circle)
-import Svg.Attributes exposing (viewBox, width, cx, cy, r, fill, fillOpacity, stroke, strokeWidth, strokeDashoffset, strokeDasharray)
-import Color exposing (Color)
-
+import Svg.Attributes exposing (width, cx, cy, r, fill, fillOpacity, stroke, strokeWidth, strokeDashoffset, strokeDasharray)
 type alias FanShape =
   { offset: Float
   , percentage: Float
@@ -38,8 +30,4 @@ angle : Float
 angle =
     degrees 40
 
-
-mouthSpeed : Int
-mouthSpeed =
-    20
 

@@ -1,10 +1,11 @@
-module Update exposing (..)
+module Update exposing (update)
 import Message exposing (Msg(..))
-import Model exposing (..)
+import Model exposing (Model,ArrowKey(..),Plate,Block,Property,Ball,Line,Bricks,State(..),Dir(..),model_init,getBrickPos,model_level1,model_level2,model_level3)
 import Color exposing (BallColor)
 import Color exposing (BallColor(..))
 import Color exposing (NormalColor(..))
 import Levels exposing (Condition)
+import Svg.Attributes exposing (in_)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -58,7 +59,7 @@ updateChar (model ,cmd ) =
         newEnergyval = ball.energy.val - 25
         newMpval =
             case ball.color of 
-                Red x ->  ball.mp.val - 0.1
+                Red _ ->  ball.mp.val - 0.1
                 _  ->
                     if (ball.mp.val < (ball.mp.max+(-0.01))) then 
                         ball.mp.val + 0.01
@@ -140,14 +141,14 @@ updateState ( model , cmd ) =
             lball = model.ball
             nball = 
                 case lball.color of 
-                    Red x -> lball
-                    Normal x -> { lball | color = Red x }
+                    Red _ -> lball
+                    Normal x -> { lball | color = Red x}
         in
             ( { model | ball = nball } , Cmd.none )
     else 
     if model.ball.mp.val <= 0 then
         case model.ball.color of 
-            Red x -> 
+            Red x-> 
                 let
                     lball = model.ball
                     nball = { lball | color = Normal x }
@@ -248,7 +249,7 @@ updatePass model check liney lineb linep =
             else purple
     in
         case model.ball.color of
-            Red x -> ( nyellow , nblue , npurple )
+            Red _-> ( nyellow , nblue , npurple )
             Normal color ->
                 case color of 
                     Blue -> ( yellow , nblue , purple )
@@ -286,13 +287,13 @@ ballHitTheBrick ( model , cmd ) =
         nlevel = { id = model.level.id , map = model.level.map , pass = npass , speed = model.level.speed }
         ncolor = 
             case lball.color of
-                Red x -> model.ball.color
+                Red _-> model.ball.color
                 _ -> 
                     if npass == model.level.pass then lball.color
                     else updateBallColor lball.color
         nmp = 
             case model.ball.color of 
-                Red x -> model.ball.mp
+                Red _-> model.ball.mp
                 _ ->
                     if npass /= model.level.pass then  Property (model.ball.mp.val+20) model.ball.mp.max
                     else if alldir lineball then Property (model.ball.mp.val+5) model.ball.mp.max

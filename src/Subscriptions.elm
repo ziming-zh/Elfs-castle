@@ -1,4 +1,4 @@
-module Subscriptions exposing (..)
+module Subscriptions exposing (subscriptions)
 
 import Browser.Events exposing (onAnimationFrameDelta, onKeyDown, onKeyUp , onResize)
 import Debug exposing (toString)

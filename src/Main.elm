@@ -1,18 +1,18 @@
-module Main exposing (..)
+module Main exposing (main)
 
 import Browser
 
 
 
 
-import Model exposing (Model,ArrowKey(..),model_level1,model_level2,model_init)
+import Model exposing (Model,ArrowKey(..),model_init)
 
 import Message exposing (Msg(..))
 import Update exposing (update)
 import View exposing (view)
 import Subscriptions exposing (subscriptions)
 import Task
-import Browser.Dom exposing (Viewport, getViewport)
+import Browser.Dom exposing (getViewport)
 --Main
 
 

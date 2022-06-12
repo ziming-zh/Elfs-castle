@@ -1,6 +1,6 @@
-module Model exposing (..)
-import Color exposing (Color,BallColor(..),NormalColor(..))
-import Levels exposing (..)
+module Model exposing (Model,ArrowKey(..),Plate,Block,Property,Ball,Line,Bricks,State(..),Dir(..),model_init,getBrickPos,model_level1,model_level2,model_level3)
+import Color exposing (BallColor(..),NormalColor(..))
+import Levels exposing (Level,initLevel1,initLevel2,initLevel3)
 type alias Model =
     { time : Float
     , windowsize : ( Float, Float )

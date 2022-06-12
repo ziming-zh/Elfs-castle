@@ -1,12 +1,9 @@
-module Levels exposing (..)
+module Levels exposing (Level,Condition,initLevel1,initLevel2,initLevel3,initMap1,initMap2,initMap3)
 import Color exposing (BallColor(..))
 import Color exposing (NormalColor(..))
 
 
     -- | Map3 GMap
-type GameLevel
-    = Level1 Level
-    | Level2 Level
 
 initLevel1 : Level
 initLevel1 = setLevel 1 (initMap1) (1,1,1) 1.0
@@ -28,6 +25,7 @@ type alias Level =
     , pass : Condition
     , speed : Float
     }
+
 
 setLevel : Int -> GMap -> Condition -> Float -> Level
 setLevel id map condition speed=
