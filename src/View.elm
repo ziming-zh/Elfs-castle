@@ -1,15 +1,18 @@
-module View exposing (..)
+module View exposing (view)
 import Svg exposing (Svg, Attribute, svg, rect, defs, filter, feGaussianBlur, feMerge, feMergeNode)
 {-import Svg.Attributes exposing (width, height, viewBox, x, y, rx, fill, id, stdDeviation, result)-}
 import Svg.Attributes as SvgAttr
 import Message exposing (Msg(..))
-import Model exposing (Model,Block,Ball,Plate,State)
+import Model exposing (Model,Bricks,Ball,Plate,State,getBrickPos)
 import Html exposing (..)
 import Html.Attributes as HtmlAttr exposing (..)
 import Html.Events exposing (onClick)
 import Color exposing (Color)
 import Markdown
 import View.Pacman as View
+import Color exposing (BallColor(..),NormalColor(..),type2color)
+import Levels exposing (Level)
+
 getx : Float -> String
 getx x  = 
     String.fromFloat (x)
@@ -55,6 +58,86 @@ renderGameButton state =
         ]
         [ text txt ]
 
+renderX : String -> Int -> Int -> String -> Html Msg
+renderX str x y color =
+    div 
+        [ style "height" "50px"
+        , style "left" ((String.fromInt x)++"px")
+        , style "position" "relative"
+        , style "top" ("-"++(String.fromInt y)++"px")
+        ]
+        [ renderTxT str color]
+
+renderTip : Model -> String -> Int -> Int -> String -> Html Msg
+renderTip model str x y color =
+    div 
+        [ style "height" "50px"
+        , style "left" ((String.fromInt x)++"px")
+        , style "position" "relative"
+        , style "top" ("-"++(String.fromInt y)++"px")
+        , style "display" 
+            (if model.ball.mp.val >= model.ball.mp.max then "block"
+            else "none")
+        ]
+        [ renderTxT str color]
+
+checkstatecolor : Model -> String
+checkstatecolor model= 
+    
+        case model.ball.color of 
+            Red x -> type2color (Red x)
+            _ -> "#33FFFF"
+
+renderinfor : Model -> Html Msg
+renderinfor model = 
+    div
+        [ style "bottom" "80px"
+        , style "color" "#34495f"
+        , style "font-family" "Helvetica, Arial, sans-serif"
+        , style "font-size" "14px"
+        , style "left" "-220px"
+        , style "position" "absolute"
+        , style "right" "0"
+        , style "top" "0"
+        ]
+        [ Svg.svg
+            [ SvgAttr.width (getx 300)
+            , SvgAttr.height (gety 700)
+            ]
+            [ drawreac (0,320) (202,1) "#242424" , drawreac (0,320) (1,10) "#242424" , drawreac (0,330) (202,1) "#242424" , drawreac (202,320) (1,10) "#242424"
+            , drawreac (1,321) (model.ball.mp.val*2,8) (checkstatecolor model)
+            ]
+        ]
+
+renderNeed : Model -> Html Msg
+renderNeed model =
+    let
+        (x,y,z) = model.level.pass
+    in
+    div
+        [ style "bottom" "80px"
+        , style "color" "#34495f"
+        , style "font-family" "Helvetica, Arial, sans-serif"
+        , style "font-size" "5px"
+        , style "left" "-150px"
+        , style "position" "absolute"
+        , style "right" "0"
+        , style "top" "0"
+        ]
+        [ Svg.svg
+            [ SvgAttr.width (getx 100)
+            , SvgAttr.height (gety 230)
+            ]
+            [ drawreac (10,50) (50,50) "#FFB266"
+            , drawreac (10,115) (50,50) "#33CCFF"
+            , drawreac (10,180) (50,50) "#3380BC"
+            ]
+            ,renderX "X" 70 210 "#bdc3c7",renderX "X" 70 225 "#bdc3c7",renderX "X" 70 240 "#bdc3c7"
+            ,renderX (String.fromInt (Basics.max 0 x)) 100 450 "#242424",renderX (String.fromInt (Basics.max 0 y)) 100 465 "#242424"
+            ,renderX (String.fromInt (Basics.max 0 z)) 100 480 "#242424"
+            ,renderX "mp:" -145 440 "#bdc3c7",renderTip model "Press F!" -140 440 "#242424" 
+        ]
+
 renderPanel : Model -> Html Msg
 renderPanel model =
     div
@@ -69,11 +152,11 @@ renderPanel model =
         , style "top" "0"
         ]
         [ renderTitle "Elf"
-        , renderTxT "Score"
+        , renderTxT "Score" "#bdc3c7"
         , renderCount  model.score
-     --   , renderCountt  (Tuple.first model.windowsize)
-      --  , renderCountt  (Tuple.second model.windowsize)
-        , renderEnd model.state "GG~~!!"
+        , renderCountt  (Tuple.first model.ball.vel)
+        , renderCountt  (Tuple.second model.ball.vel)
+        , renderEnd model.state "The Elf is Upset! Please Try Again!"
         , renderGameButton model.state
         ]
 
@@ -90,11 +173,12 @@ renderTitle txt =
         [ text txt ]
 
 
-renderTxT : String -> Html Msg
-renderTxT txt =
+renderTxT : String -> String -> Html Msg
+renderTxT txt color =
     div
-        [ style "color" "#bdc3c7"
+        [ style "color" color
         , style "font-weight" "700"
+        , style "font-size" "40px"
         , style "line-height" "1"
         , style "margin" "30px 0 0"
         ]
@@ -161,20 +245,18 @@ drawreac (x,y) (dx,dy) color =
 renderBackground : Html Msg
 renderBackground =
     div
-        [ style "background" "rgba(236, 240, 241, 0.15)"
+        [ style "background" "rgba(236, 240, 241, 0.3)"
         , style "color" "#34495f"
         , style "font-family" "Helvetica, Arial, sans-serif"
         , style "font-size" "18px"
-        , style "height" "600px"
+        , style "height" "800px"
         , style "left" "0"
         , style "line-height" "1.5"
         , style "padding" "0 15px"
         , style "position" "absolute"
         , style "top" "0"
-        , style "width" "800px"
-        , style "display"
-        
-                "block"
+        , style "width" "580px"
+       -- , style "display" "block"
         ]
         [ 
         ]
@@ -212,14 +294,16 @@ view model =
             [ div
                 [ HtmlAttr.style "width" (String.fromFloat pixelWidth ++ "px")
                 , HtmlAttr.style "height"  (String.fromFloat pixelHeight ++ "px")
-                , HtmlAttr.style "position" "flex-shrink"
+                , HtmlAttr.style "position" "absolute"
                 , HtmlAttr.style "left" (String.fromFloat ((w - pixelWidth * r) / 2) ++ "px")
                 , HtmlAttr.style "top" (String.fromFloat ((h - pixelHeight * r) / 2) ++ "px")
                 , HtmlAttr.style "transform-origin" "0 0"
                 , HtmlAttr.style "transform" ("scale(" ++ String.fromFloat r ++ ")")
                 ]
                 
-                ([renderPanel model
+                ([renderNeed model
+                ,renderinfor model
+                ,renderPanel model
                 ,renderBackground 
                 ,renderGame model       
                 ])
@@ -236,7 +320,7 @@ renderGame model =
     ([viewPlate model model.plate
         ,viewBall model model.ball]
         ++
-        (viewBlocks model model.bricks))
+        (viewBlocks model.bricks))
 
 
 
@@ -254,14 +338,14 @@ viewPlate model plate =
 
 
 
-drawBlocks : ( Float , Float ) -> Html Msg
-drawBlocks  ( x , y ) = 
-    drawreac (x, y) (50,50)  "#00CDCD"
+drawBlocks : ((Float,Float) , NormalColor) -> Html Msg
+drawBlocks  ((x,y),normalcolor) = 
+    drawreac (x, y) (50,50)  (type2color (Normal normalcolor))
 
 
-viewBlocks : Model -> List Block -> List (Html Msg)
-viewBlocks model blocks =
-    List.map drawBlocks blocks 
+viewBlocks : Bricks -> List (Html Msg)
+viewBlocks blocks =
+    List.map drawBlocks blocks
 
 
 drawcir : ( Float , Float ) -> Float -> String -> Html Msg
@@ -287,6 +371,6 @@ viewBall model ball =
             else 0.9
         offset = atan (vy/vx) / (2*pi)+  1/2*(neg vx)+ (1-percentage)/2 +(-1/4)
        
-        fanshapes = View.FanShape (offset*100) (percentage*100) "black" ball.pos
+        fanshapes = View.FanShape (offset*100) (percentage*100) (type2color ball.color) ball.pos
     in
        View.viewFanShape fanshapes

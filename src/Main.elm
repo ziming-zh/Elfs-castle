@@ -1,4 +1,4 @@
-module Main exposing (..)
+module Main exposing (main)
 
 import Browser
 
@@ -12,7 +12,7 @@ import Update exposing (update)
 import View exposing (view)
 import Subscriptions exposing (subscriptions)
 import Task
-import Browser.Dom exposing (Viewport, getViewport)
+import Browser.Dom exposing (getViewport)
 --Main
 
 
@@ -21,7 +21,7 @@ main =
 
 init : () -> ( Model, Cmd Msg )
 init a =
-        ( model_init
+        ( model_init 2
         , Task.perform GetViewport getViewport
         )
 

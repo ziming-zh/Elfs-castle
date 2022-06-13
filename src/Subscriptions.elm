@@ -1,4 +1,4 @@
-module Subscriptions exposing (..)
+module Subscriptions exposing (subscriptions)
 
 import Browser.Events exposing (onAnimationFrameDelta, onKeyDown, onKeyUp , onResize)
 import Debug exposing (toString)
@@ -31,6 +31,8 @@ key1 keycode =
             ArrowPressed RightKey
         32 ->
             ArrowPressed Space
+        70 ->
+            ArrowPressed F
         _ ->
             ArrowPressed NoKey
             

@@ -1,4 +1,4 @@
-module Color exposing (Color, rgb,toString)
+module Color exposing (BallColor(..),NormalColor(..), Color,type2color, rgb,toString)
 
 import Json.Decode as Decode
 import Json.Encode as Encode
@@ -11,6 +11,27 @@ toString (Color { red, green, blue }) =
         ++ ","
         ++ String.fromInt blue
         ++ ")"
+
+type BallColor
+    = Red NormalColor
+    | Normal NormalColor
+
+type NormalColor
+    = Blue
+    | Yellow
+    | Purple
+    | Black
+
+type2color : BallColor -> String
+type2color color = 
+    case color of 
+        Normal normalcolor -> 
+            case normalcolor of 
+                Blue -> "#33CCFF"
+                Yellow -> "#FFB266"
+                Purple -> "#3380BC"
+                Black -> "#646464"
+        _ -> "#FF6666"
 
 
 type Color
