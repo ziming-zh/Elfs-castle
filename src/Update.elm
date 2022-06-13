@@ -27,11 +27,14 @@ update msg model =
               }
             , Cmd.none ) 
 
-        ArrowPressed Space ->
+        ArrowPressed Space ->   
             ( { model | state = 
                 if model.state == Playing then Paused
                 else if model.state == Paused then Playing 
                 else GG }, Cmd.none )
+
+        ArrowPressed F ->
+            ( model , Cmd.none ) |> updateState True
 
         ArrowPressed arrow ->
             ( updatePlate1 arrow model , Cmd.none )
@@ -61,10 +64,7 @@ updateChar (model ,cmd ) =
             case ball.color of 
                 Red _ ->  ball.mp.val - 0.1
                 _  ->
-                    if (ball.mp.val < (ball.mp.max+(-0.01))) then 
-                        ball.mp.val + 0.01
-                    else 
-                        ball.mp.max
+                    Basics.min (ball.mp.val + 0.01) ball.mp.max
         newBall = {ball | energy = {energy | val = newEnergyval} , mp = { mp| val = newMpval}}
 
     in
@@ -134,9 +134,9 @@ updatelevel ( model , cmd ) =
         else
             ( model , Cmd.none )
 
-updateState : ( Model , Cmd Msg ) -> ( Model , Cmd Msg )
-updateState ( model , cmd ) =
-    if model.ball.mp.val == model.ball.mp.max then
+updateState : Bool -> ( Model , Cmd Msg ) -> ( Model , Cmd Msg )
+updateState flag ( model , cmd ) =
+    if flag && model.ball.mp.val == model.ball.mp.max then
         let
             lball = model.ball
             nball = 
@@ -165,8 +165,8 @@ updateGame model =
     else
         ( model, Cmd.none)
             |> updateTime
+            |> (updateState False)
             |> updateChar
-            |> updateState
             |> ballHitTheBrick
             |> updateBall
             |> moveplate
@@ -190,33 +190,83 @@ getlines list1 =
     List.concat [ List.map (pointtoline (50,0)) (getBrickPos list1) , List.map (pointtoline (0,50)) (getBrickPos list1) , 
         List.map (pointtoline(50,0)) (List.map (pointadd (0,50)) (getBrickPos list1)) , List.map (pointtoline (0,50)) (List.map (pointadd(50,0)) (getBrickPos list1)) ]
 
-collide : ( Float , Float ) -> ( Float , Float ) -> ( Float , Float ) -> Line -> Bool
-collide (lx,ly) (nx,ny) (a,b) line =
+dis : ( Float , Float ) -> ( Float , Float ) -> Float
+dis (x1,y1) (x2,y2) =
+    sqrt ((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1))
+
+collide : ( Float , Float ) -> ( Float , Float ) -> Line -> Bool
+collide (nx,ny) (a,b) line =
     let
         (x1,y1) = line.p1
         (x2,y2) = line.p2
-        x = (y1-ly)*(nx-lx)/(ny-ly) + lx
-        y = (x1-lx)*(ny-ly)/(nx-lx) + ly
     in
-        if y1 == y2 && a == 1 then ( x >= (Basics.min x1 x2) && x <= (Basics.max x1 x2) ) && ( x >= (Basics.min lx nx) && x <= (Basics.max lx nx) )
-        else if x1 == x2 && b == 1 then ( y >= (Basics.min y1 y2) && y <= (Basics.max y1 y2) ) && ( y >= (Basics.min ly ny) && y <= (Basics.max ly ny))
-        else (0 == 1)
+        if b == 0 then 
+            if y1 == y2  then 
+                if a == 1 then
+                   ( ny <= y1+25 && ny >= y1 && nx >= x1 && nx <= x2 )
+                || ( dis (x1,y1) (nx,ny) <= 25 && nx+ny >= x1+y1 )
+                || ( dis (x2,y2) (nx,ny) <= 25 && ny-nx >= y2-x2  )
+                else 
+                   ( ny >= y1-25 && ny <= y1 && nx >= x1 && nx <= x2 )
+                || ( dis (x1,y1) (nx,ny) <= 25 && ny-nx <= y1-x1)
+                || ( dis (x2,y2) (nx,ny) <= 25 && nx+ny <= x2+y2 )
+            else False
+        else 
+        if a == 0 then
+            if x1 == x2 then
+                if b == 1 then
+                   ( nx <= x1 && nx >= x1-25 && ny >= y1 && ny <= y2 )
+                || ( dis (x1,y1) (nx,ny) <= 25 && ny-nx >= y1-x1 )
+                || ( dis (x2,y2) (nx,ny) <= 25 && nx+ny <= y2+x2 )
+                else
+                   ( nx >= x1 && nx <= x1+25 && ny >= y1 && ny <= y2 )
+                || ( dis (x1,y1) (nx,ny) <= 25 && nx+ny >= x1+y1 )
+                || ( dis (x2,y2) (nx,ny) <= 25 && ny-nx <= y2-x2 )
+            else False
+        else 
+            if x1 == x2 then
+               ( nx >= x1-25 && nx <= x1+25 && ny >= y1 && ny <= y2 )
+            || ( dis (x1,y1) (nx,ny) <= 25 ) || ( dis (x2,y2) (nx,ny) <= 25 )
+            else
+               ( ny >= y1-25 && ny <= y1+25 && nx >= x1 && nx <= x2 )
+            || ( dis (x1,y1) (nx,ny) <= 25 ) || ( dis (x2,y2) (nx,ny) <= 25 )
 
-checkbrike : ( Float , Float ) -> ( Float , Float ) -> Block -> Bool
-checkbrike (lx,ly) (nx,ny) (x,y) =
+updateSpeed : ( Float , Float ) -> Dir -> Int -> ( Float , Float )
+updateSpeed (lvx,lvy) dir id =
+    let
+        k = lvx/lvy
+        angle = 
+            if k >= 1.1 then -7*pi/8
+            else if k >= 0.9 then -6*pi/8
+            else if k >= 0.1 then -5*pi/8
+            else if k >= -0.1 then -4*pi/8
+            else if k >= -0.9 then -3*pi/8
+            else if k >= -1.1 then -2*pi/8
+            else -pi/8
+        nangle =
+            if dir == Right then Basics.min(angle+pi/8) (-pi/8)
+            else Basics.max (angle-pi/8) (-7*pi/8)
+        speed = (sqrt 2) * (case id of 
+            1 -> 3
+            2 -> 3.5
+            3 -> 4
+            _ -> 4)
+    in
+        ( speed * cos( nangle ) , speed * sin( nangle ) )
+
+
+checkbrike : ( Float , Float ) -> Block -> Bool
+checkbrike (nx,ny) (x,y) =
     let
         lines = getlines [(x,y)]
     in
-        not (List.any (collide (lx,ly) (nx,ny) (1,1)) lines)
+        not (List.any (collide (nx,ny) (1,1)) lines)
 
-updateBrike : ( Float , Float ) -> ( Float , Float ) -> List Block -> ( Model , Cmd Msg ) -> ( Model , Cmd Msg )
-updateBrike (lx,ly) (nx,ny) list1 (model,cmd) =
+updateBrike : ( Float , Float ) -> List Block -> ( Model , Cmd Msg ) -> ( Model , Cmd Msg )
+updateBrike (nx,ny) list1 (model,cmd) =
     let
-        nbrick = List.filter (checkbrike (lx,ly) (nx,ny)) list1
-
+        nbrick = List.filter (checkbrike (nx,ny)) list1
         nscore = ((List.length model.bricks) - (List.length nbrick))*100 + model.score
-
-
     in
         ( { model | bricks = nbrick , score = nscore } , Cmd.none )
 
@@ -239,23 +289,22 @@ updatePass model check liney lineb linep =
     let 
         ( yellow , blue , purple ) = model.level.pass
         nyellow = 
-            if check liney then (yellow-1)
+            if check liney then 
+                if model.ball.color /= Normal Blue && model.ball.color /= Normal Purple then (yellow-2)
+                else (yellow-1)
             else yellow
         nblue = 
-            if check lineb then (blue-1)
+            if check lineb then 
+                if model.ball.color /= Normal Yellow && model.ball.color /= Normal Purple then (blue-2)
+                else (blue-1)
             else blue
         npurple = 
-            if check linep then (purple-1)
+            if check linep then 
+                if model.ball.color /= Normal Yellow && model.ball.color /= Normal Blue then (purple-2)
+                else (purple-1)
             else purple
     in
-        case model.ball.color of
-            Red _-> ( nyellow , nblue , npurple )
-            Normal color ->
-                case color of 
-                    Blue -> ( yellow , nblue , purple )
-                    Yellow -> ( nyellow , blue , purple)
-                    Purple -> ( yellow , blue , npurple )
-                    Black -> model.level.pass
+        (nyellow,nblue,npurple)
 
 ballHitTheBrick : ( Model , Cmd Msg ) -> ( Model, Cmd Msg)
 ballHitTheBrick ( model , cmd ) =
@@ -272,17 +321,24 @@ ballHitTheBrick ( model , cmd ) =
         linep = getlines ( List.filter (\block -> (Tuple.second block) == Purple) model.bricks ) 
         liney = getlines ( List.filter (\block -> (Tuple.second block) == Yellow) model.bricks ) 
         lineball = List.concat [lineb,linep,liney] 
-        line = List.concat [lineball,[{p1=(600,0),p2=(600,780)},{p1=(0,0),p2=(600,0)},{p1=(0,0),p2=(0,780)}]]
-        lines = List.concat [[pointtoline (150,0) (model.plate.pos,780)],line]
+        linewall = [{p1=(600,0),p2=(600,780)},{p1=(0,0),p2=(600,0)},{p1=(0,0),p2=(0,780)}]
+        line = List.concat [lineball,linewall]
+        plate = [pointtoline (150,0) (model.plate.pos,780)]
+        lines = List.concat [plate,line]
         --lines = List.concat [[pointtoline (600,0) (0,780)],line]
         nvel1 = ( Tuple.first model.ball.vel , -(Tuple.second model.ball.vel ))
         nvel2 = ( -(Tuple.first model.ball.vel) , Tuple.second model.ball.vel)
-        up = List.any (collide (lx,ly+15) (nx,ny+15) (1,0))
-        down = List.any (collide (lx,ly-15) (nx,ny-15) (1,0)) 
-        right =  List.any (collide (lx+15,ly) (nx+15,ny) (0,1)) 
-        left =  List.any (collide (lx-15,ly) (nx-15,ny) (0,1)) 
+        nvel4 = ( -(Tuple.first model.ball.vel) , -(Tuple.second model.ball.vel ))
+        nvel3 = 
+            if down plate then
+                if (model.plate.state /= None) then updateSpeed nvel1 model.plate.state model.level.id
+                else nvel1
+            else model.ball.vel
+        up = List.any (collide (nx,ny) (1,0))
+        down = List.any (collide (nx,ny) (-1,0)) 
+        right =  List.any (collide (nx,ny) (0,-1)) 
+        left =  List.any (collide (nx,ny) (0,1)) 
         alldir = (\x -> ( up x || down x || right x || left x ) )
-
         npass = updatePass model alldir liney lineb linep
         nlevel = { id = model.level.id , map = model.level.map , pass = npass , speed = model.level.speed }
         ncolor = 
@@ -295,26 +351,35 @@ ballHitTheBrick ( model , cmd ) =
             case model.ball.color of 
                 Red _-> model.ball.mp
                 _ ->
-                    if npass /= model.level.pass then  Property (model.ball.mp.val+20) model.ball.mp.max
-                    else if alldir lineball then Property (model.ball.mp.val+5) model.ball.mp.max
+                    if npass /= model.level.pass then  Property (Basics.min (model.ball.mp.val+20) model.ball.mp.max) model.ball.mp.max
+                    else if alldir lineball then Property (Basics.min (model.ball.mp.val+5) model.ball.mp.max) model.ball.mp.max
                     else model.ball.mp
         nball1 = { lball | mp = nmp , pos = model.ball.pos , vel = nvel1 , color = ncolor }
             
         nball2 = { lball | mp = nmp , pos = model.ball.pos , vel = nvel2 , color = ncolor }
+        nball3 = { lball | mp = nmp , pos = model.ball.pos , vel = nvel3 , color = ncolor }
+        nball4 = { lball | mp = nmp , pos = model.ball.pos , vel = nvel4 , color = ncolor }
+        fball = { lball | mp = nmp , pos = model.ball.pos , vel = (0,0) , color = ncolor }
     in
-        if up lines then
+        if down plate then 
+            ( { model | level = nlevel , ball = nball3 } , Cmd.none )
+        else
+        if up linewall && ( left linewall || right linewall ) then 
+            ( { model | level = nlevel , ball = nball4 } , Cmd.none )
+        else
+        if up line then
             ( { model | level = nlevel , ball = nball1 } , Cmd.none ) 
-                |> (updateBrike (lx,ly+15) (nx,ny+15) model.bricks)
+                |> (updateBrike (nx,ny) model.bricks)
         else  
-        if down line then
+        if down lines then
             ( { model | level = nlevel , ball = nball1 } , Cmd.none )
-                |> (updateBrike (lx,ly-15) (nx,ny-15) model.bricks)
+                |> (updateBrike (nx,ny) model.bricks)
         else  
         if right lines then
             ( { model | level = nlevel , ball = nball2 } , Cmd.none )
-                |> (updateBrike (lx+15,ly) (nx+15,ny) model.bricks)
+                |> (updateBrike (nx,ny) model.bricks)
         else 
         if left lines then
             ( { model | level = nlevel , ball = nball2 } , Cmd.none )
-                |> (updateBrike (lx-15,ly) (nx-15,ny) model.bricks)
+                |> (updateBrike (nx,ny) model.bricks)
         else ( model , Cmd.none )
