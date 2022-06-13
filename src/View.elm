@@ -68,6 +68,19 @@ renderX str x y color =
         ]
         [ renderTxT str color]
 
+renderTip : Model -> String -> Int -> Int -> String -> Html Msg
+renderTip model str x y color =
+    div 
+        [ style "height" "50px"
+        , style "left" ((String.fromInt x)++"px")
+        , style "position" "relative"
+        , style "top" ("-"++(String.fromInt y)++"px")
+        , style "display" 
+            (if model.ball.mp.val >= model.ball.mp.max then "block"
+            else "none")
+        ]
+        [ renderTxT str color]
+
 checkstatecolor : Model -> String
 checkstatecolor model= 
     
@@ -96,16 +109,16 @@ renderinfor model =
             ]
         ]
 
-renderNeed : Level -> Html Msg
-renderNeed { pass } =
+renderNeed : Model -> Html Msg
+renderNeed model =
     let
-        (x,y,z) = pass
+        (x,y,z) = model.level.pass
     in
     div
         [ style "bottom" "80px"
         , style "color" "#34495f"
         , style "font-family" "Helvetica, Arial, sans-serif"
-        , style "font-size" "14px"
+        , style "font-size" "5px"
         , style "left" "-150px"
         , style "position" "absolute"
         , style "right" "0"
@@ -116,12 +129,13 @@ renderNeed { pass } =
             , SvgAttr.height (gety 230)
             ]
             [ drawreac (10,50) (50,50) "#FFB266"
-            , drawreac (10,115) (50,50) "#3399FF"
-            , drawreac (10,180) (50,50) "#FF66B2"
+            , drawreac (10,115) (50,50) "#33CCFF"
+            , drawreac (10,180) (50,50) "#3380BC"
             ]
             ,renderX "X" 70 210 "#bdc3c7",renderX "X" 70 225 "#bdc3c7",renderX "X" 70 240 "#bdc3c7"
             ,renderX (String.fromInt (Basics.max 0 x)) 100 450 "#242424",renderX (String.fromInt (Basics.max 0 y)) 100 465 "#242424"
             ,renderX (String.fromInt (Basics.max 0 z)) 100 480 "#242424"
+            ,renderX "mp:" -145 440 "#bdc3c7",renderTip model "Press F!" -140 440 "#242424" 
         ]
 
 renderPanel : Model -> Html Msg
@@ -140,8 +154,8 @@ renderPanel model =
         [ renderTitle "Elf"
         , renderTxT "Score" "#bdc3c7"
         , renderCount  model.score
-        --, renderCountt  model.ball.mp.val
-        --, renderCountt  model.ball.mp.max
+        , renderCountt  (Tuple.first model.ball.vel)
+        , renderCountt  (Tuple.second model.ball.vel)
         , renderEnd model.state "The Elf is Upset! Please Try Again!"
         , renderGameButton model.state
         ]
@@ -287,7 +301,7 @@ view model =
                 , HtmlAttr.style "transform" ("scale(" ++ String.fromFloat r ++ ")")
                 ]
                 
-                ([renderNeed model.level
+                ([renderNeed model
                 ,renderinfor model
                 ,renderPanel model
                 ,renderBackground 

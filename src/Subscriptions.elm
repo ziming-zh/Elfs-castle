@@ -31,6 +31,8 @@ key1 keycode =
             ArrowPressed RightKey
         32 ->
             ArrowPressed Space
+        70 ->
+            ArrowPressed F
         _ ->
             ArrowPressed NoKey
             

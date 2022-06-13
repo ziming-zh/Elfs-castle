@@ -6,13 +6,13 @@ import Color exposing (NormalColor(..))
     -- | Map3 GMap
 
 initLevel1 : Level
-initLevel1 = setLevel 1 (initMap1) (1,1,1) 1.0
+initLevel1 = setLevel 1 (initMap1) (0,6,4) 1.0
 
 initLevel2 : Level
-initLevel2 = setLevel 2 (initMap2) (3,3,3) 5
+initLevel2 = setLevel 2 (initMap2) (3,7,6) 5
 
 initLevel3 : Level
-initLevel3 = setLevel 3 (initMap3) (5,5,5) 1.5
+initLevel3 = setLevel 3 (initMap3) (8,11,8) 1.5
 
 type alias Condition = (Int, Int, Int) --Yellow, Blue, Purple Required
 type alias GMap = 

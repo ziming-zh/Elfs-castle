@@ -61,6 +61,7 @@ type ArrowKey
     | RightKey
     | UpKey
     | DownKey
+    | F
 
 type Dir 
     = Left
