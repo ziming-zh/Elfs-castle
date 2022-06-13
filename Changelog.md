@@ -38,6 +38,11 @@ All notable changes to this project are documented in this file.
 - Add the pattern to let elf become furious and adjust relative functions
 - Add lives for the game and adjust lose detect
 
+#[2.6] -- {2022/6/13} Added
+- Modify the collision detection to avoid bug
+- Added the function that when the ball hit the plate, its direction would change according to plates' state
+- Modify that elf's becoming furious should be stimulated by keyboard
+
 #[version] -- {Date}
 	Added
 
