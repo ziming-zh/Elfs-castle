@@ -27,9 +27,9 @@ type2color color =
     case color of 
         Normal normalcolor -> 
             case normalcolor of 
-                Blue -> "#3399FF"
+                Blue -> "#33CCFF"
                 Yellow -> "#FFB266"
-                Purple -> "#FF66B2"
+                Purple -> "#3380BC"
                 Black -> "#646464"
         _ -> "#FF6666"
 
