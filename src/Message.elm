@@ -12,3 +12,4 @@ type Msg
     | Start
     | Pause
     | Resume
+    | Next

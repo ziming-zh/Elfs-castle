@@ -1,7 +1,7 @@
-module Model exposing (Model,ArrowKey(..),Plate,Block,Property,Ball,Line,Bricks,State(..),Dir(..),model_init,getBrickPos,model_level1,model_level2,model_level3,initBricks)
+module Model exposing (Model,ArrowKey(..),Plate,Block,Property,Ball,Line,Bricks,State(..),Dir(..),model_init,getBrickPos,model_level1,model_level2,model_level3,initBricks,init_model1,init_model2,init_model3)
 import Color exposing (BallColor(..),NormalColor(..))
 import Levels exposing (Level,initLevel1,initLevel2,initLevel3)
-import Levels exposing (GMap)
+import Levels exposing (GMap,End)
 import Levels exposing (initEnding1)
 import Levels exposing (initEnding2)
 import Levels exposing (initEnding3)
@@ -16,7 +16,8 @@ type alias Model =
     , state : State
     , score : Int
     , level : Level
-    , ending : GMap
+    , ending : End 
+    , dt : Float
     }
 
 
@@ -58,6 +59,7 @@ type State
     = Paused
     | Playing
     | GG
+    | Changing
     
 type ArrowKey
     = NoKey
@@ -112,20 +114,31 @@ initPlate = Plate None 250
 
 model_init : Int -> Model
 model_init x = 
-    Model 0 ( 1396, 691 ) (initBall 3) (initBricks initLevel1) initPlate x False Paused 0 initLevel1 initEnding1
+    Model 0 ( 1396, 691 ) (initBall 3) (initBricks initLevel1) initPlate x False Paused 0 initLevel1 initEnding1 0
+
+init_model1 : Model -> Model
+init_model1 model = 
+    Model 0 ( 1396, 691 ) (newBall model.ball 3) (initBricks initLevel1) initPlate model.live False Paused 0 initLevel1 initEnding1 0
+    
+init_model2 : Model -> Model
+init_model2 model = 
+    Model 0 ( 1396, 691 ) (newBall model.ball 3.5) (initBricks initLevel2) initPlate model.live False Paused 0 initLevel2 initEnding2 0
+
+init_model3 : Model -> Model
+init_model3 model =
+    Model 0 ( 1396, 691 ) (newBall model.ball 4) (initBricks initLevel3) initPlate model.live False Paused 0 initLevel3 initEnding3 0
 
 model_level1 : Model -> Model
 model_level1 model = 
-    Model 0 ( 1396, 691 ) (newBall model.ball 3) (initBricks initLevel1) initPlate model.live False Paused 0 initLevel1 initEnding1
-    
+    { model | ball =  (newBall model.ball 3) , state = Paused } 
+
 model_level2 : Model -> Model
 model_level2 model = 
-    Model 0 ( 1396, 691 ) (newBall model.ball 3.5) (initBricks initLevel2) initPlate model.live False Paused 0 initLevel2 initEnding2
+    { model | ball =  (newBall model.ball 3.5) , state = Paused } 
 
 model_level3 : Model -> Model
-model_level3 model =
-    Model 0 ( 1396, 691 ) (newBall model.ball 4) (initBricks initLevel3) initPlate model.live False Paused 0 initLevel3 initEnding3
-
+model_level3 model =    
+    { model | ball =  (newBall model.ball 4) , state = Paused } 
 
 
 

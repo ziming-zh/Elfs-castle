@@ -43,6 +43,13 @@ All notable changes to this project are documented in this file.
 - Added the function that when the ball hit the plate, its direction would change according to plates' state
 - Modify that elf's becoming furious should be stimulated by keyboard
 
+#[2.7] -- {2022/6/14} Added
+- Added new blocks as barriers
+- Adjust the angle change when elf collides with plate to improve game experience
+- Redesign the map
+- Added the level change part
+- Use the Tick to make sure the game runs in the same velocity on different computers
+
 #[version] -- {Date}
 	Added
 
