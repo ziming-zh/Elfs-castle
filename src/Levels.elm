@@ -1,4 +1,4 @@
-module Levels exposing (Level,Condition,initLevel1,initLevel2,initLevel3,initMap1,initMap2,initMap3)
+module Levels exposing (Level,GMap,Condition,initLevel1,initLevel2,initLevel3,initMap1,initMap2,initMap3,initEnding1,initEnding2,initEnding3)
 import Color exposing (BallColor(..))
 import Color exposing (NormalColor(..))
 
@@ -6,7 +6,7 @@ import Color exposing (NormalColor(..))
     -- | Map3 GMap
 
 initLevel1 : Level
-initLevel1 = setLevel 1 (initMap1) (0,6,4) 1.0
+initLevel1 = setLevel 1 (initMap1) (6,0,4) 1.0
 
 initLevel2 : Level
 initLevel2 = setLevel 2 (initMap2) (3,7,6) 5
@@ -66,3 +66,34 @@ initMap3 =
      Yellow,Purple,Blue,Yellow,Blue,Purple,Yellow,Blue
      ]
      (8,8)
+
+
+initEnding1 : GMap
+initEnding1 = 
+    GMap 
+        [Nocolor, Yellow, Yellow, Nocolor,
+        Yellow, Yellow, Yellow, Yellow,
+        Nocolor, Purple, Purple, Nocolor,
+        Nocolor, Purple, Purple, Nocolor]
+        (4,4)
+
+initEnding2 : GMap
+initEnding2 =
+    GMap
+        [Nocolor, Yellow, Yellow, Yellow, Nocolor,
+        Yellow, Yellow, Nocolor, Yellow, Yellow,
+        Nocolor, Purple,Blue, Purple, Nocolor,
+        Nocolor, Purple,Blue, Purple, Nocolor,
+        Nocolor, Purple,Blue, Purple, Nocolor]
+        (5,5)
+
+initEnding3 : GMap
+initEnding3 =
+    GMap
+        [Nocolor, Yellow, Yellow, Yellow, Yellow, Yellow, Nocolor,
+        Yellow, Yellow, Yellow, Nocolor, Yellow, Yellow, Yellow,
+        Nocolor, Purple, Blue, Nocolor, Blue, Purple, Nocolor,
+        Nocolor, Purple, Blue, Nocolor, Blue, Purple, Nocolor,
+        Nocolor, Purple, Blue, Nocolor, Blue, Purple, Nocolor,
+        Nocolor, Purple, Blue, Nocolor, Blue, Purple, Nocolor]
+        (7,6)

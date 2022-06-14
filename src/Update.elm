@@ -5,7 +5,7 @@ import Color exposing (BallColor)
 import Color exposing (BallColor(..))
 import Color exposing (NormalColor(..))
 import Levels exposing (Condition)
-import Svg.Attributes exposing (in_)
+
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -129,7 +129,8 @@ updatelevel ( model , cmd ) =
         (x,y,z) = model.level.pass
     in
         if x <= 0 && y <= 0 && z <= 0 then 
-            if model.level.id == 1 then ( model_level2 model , Cmd.none )
+            if model.level.id == 1 
+            then ( model_level2 model , Cmd.none )
             else ( model_level3 model , Cmd.none )
         else
             ( model , Cmd.none )
@@ -282,6 +283,7 @@ updateBallColor color =
                 Yellow -> Normal Blue
                 Blue -> Normal Purple
                 Black -> Normal Black
+                _ -> Normal Nocolor
         _ -> color
 
 updatePass : Model -> ( List Line -> Bool ) -> List Line -> List Line -> List Line -> Condition

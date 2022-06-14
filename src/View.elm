@@ -3,7 +3,7 @@ import Svg exposing (Svg, Attribute, svg, rect, defs, filter, feGaussianBlur, fe
 {-import Svg.Attributes exposing (width, height, viewBox, x, y, rx, fill, id, stdDeviation, result)-}
 import Svg.Attributes as SvgAttr
 import Message exposing (Msg(..))
-import Model exposing (Model,Bricks,Ball,Plate,State,getBrickPos)
+import Model exposing (Model,Bricks,Ball,Plate,State,getBrickPos,initBricks)
 import Html exposing (..)
 import Html.Attributes as HtmlAttr exposing (..)
 import Html.Events exposing (onClick)
@@ -11,7 +11,9 @@ import Color exposing (Color)
 import Markdown
 import View.Pacman as View
 import Color exposing (BallColor(..),NormalColor(..),type2color)
-import Levels exposing (Level)
+import Levels exposing (Level, GMap,Condition)
+import Levels exposing (initEnding1,initEnding2,initEnding3)
+import Array exposing (Array)
 
 getx : Float -> String
 getx x  = 
@@ -305,7 +307,8 @@ view model =
                 ,renderinfor model
                 ,renderPanel model
                 ,renderBackground 
-                ,renderGame model       
+                ,renderGame model
+                ,renderHouse model       
                 ])
                     
                 
@@ -321,6 +324,84 @@ renderGame model =
         ,viewBall model model.ball]
         ++
         (viewBlocks model.bricks))
+
+zip : List a -> List b -> List (a, b)
+zip xs ys =
+  List.map2 Tuple.pair xs ys
+
+changeColor : (NormalColor,Bool) -> NormalColor -> ( NormalColor, Bool)
+changeColor (element,deleted) aimcolor  = 
+    if deleted == True && element == aimcolor then
+        (Nocolor, False)
+    else 
+        (element, False)
+
+revealColor :  NormalColor -> Int -> List NormalColor -> List NormalColor
+revealColor  color remaining map = 
+    if remaining<=0 then
+        map
+    else 
+        revealColor color (remaining+(-1)) (Tuple.first (List.unzip (List.map (\x -> changeColor (x,True) color ) map)))
+
+
+initHouse : GMap -> Condition -> Bricks
+initHouse map pass = 
+    let
+        sizex = Tuple.first map.size
+        sizey = Tuple.second map.size
+        rows = List.map (\x -> (toFloat x)) (List.map (\x ->  x*60+5) (List.range (round (5- (toFloat sizex)/2)) (round (4+ (toFloat sizex)/2))))
+        cols = List.map (\x -> (toFloat x)) (List.map (\x ->  x*60+50) (List.range 0 sizey))
+        line =
+            \y -> List.map (\x -> Tuple.pair x y) rows
+        sol =List.map line cols
+            |> List.concat
+        yel = case pass of 
+            (a,_,_) -> a
+        blue = case pass of 
+            (_,b,_) -> b
+        pur = case pass of 
+            (_,_,c) -> c
+        
+        
+    in
+        -- zip sol (List.map (\y -> (revealColor map.color (Tuple.first y) (Tuple.second y))) (colorChecker condition))
+        revealColor Purple pur map.color
+        |> revealColor Yellow yel
+        |> revealColor Blue blue
+        |> zip sol
+renderHouse : Model -> Html Msg
+renderHouse model = 
+    let
+        id = model.level.id
+        pass = model.level.pass
+    in
+    
+    div
+        [ 
+        style "bottom" "80px"
+        , style "color" "#34495f"
+        , style "font-family" "Helvetica, Arial, sans-serif"
+        , style "font-size" "5px"
+        , style "left" "-500px"
+        , style "position" "absolute"
+        , style "right" "0"
+        , style "top" "1100px"
+        , style "zoom" "0.5"]
+        [
+        Svg.svg
+        [ SvgAttr.width (getx 500.0)
+        , SvgAttr.height (gety 500.0) 
+        ]     
+        ([]
+            ++
+            case id of
+                1 -> (viewBlocks (initHouse initEnding1 pass))
+                2 -> (viewBlocks (initHouse initEnding2 pass))
+                3 -> (viewBlocks (initHouse initEnding3 pass))
+                _ -> (viewBlocks (initHouse initEnding1 pass))
+        )
+        ]
+    
 
 
 
