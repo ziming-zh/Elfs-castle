@@ -176,9 +176,15 @@ changeview : ( Model , Cmd Msg ) -> ( Model , Cmd Msg )
 changeview ( model , cmd ) =
     let
         (x,y) = model.ending.pos
+        a = 1.0*13/180000
+        b = -13/30
+        t0 = (-b-Basics.sqrt(b*b-4*a*x))/(2*a)
+        v0 = 13/30-650/1500/3000*t0
+        v1 = v0-model.dt*650/1500/3000
+        dx = (v0+v1)*model.dt/2
         (nx,ny) = 
             if x <= 650 then
-                ( x + 0.5*model.dt , y - 0.15*model.dt )
+                ( x + dx , y - dx )
             else (x,y)
     in
         ( { model | ending = { map = model.ending.map , pos = (nx,ny) } } , Cmd.none )
@@ -288,23 +294,28 @@ updateSpeed (lvx,lvy) dir id =
         ( speed * cos( nangle ) , speed * sin( nangle ) )
 
 
-checkbrike : BallColor -> ( Float , Float ) -> Block -> Bool
-checkbrike color (nx,ny) (x,y) =
+checkbrike : Int -> BallColor -> ( Float , Float ) -> Block -> Bool
+checkbrike k color (nx,ny) (x,y) =
     let
         lines = getlines [(x,y)]
+        flag = 
+            case color of 
+                Red colorr ->
+                    not (List.any (collide (nx,ny) (1,1)) lines)
+                _ ->
+                    if y /= Black then
+                        not (List.any (collide (nx,ny) (1,1)) lines)
+                    else True
+        nflag = if k == 0 then flag
+                else not flag
     in
-    case color of 
-        Red colorr ->
-            not (List.any (collide (nx,ny) (1,1)) lines)
-        _ ->
-            if y /= Black then
-                not (List.any (collide (nx,ny) (1,1)) lines)
-            else True
+        nflag
 
 updateBrike : ( Float , Float ) -> List Block -> ( Model , Cmd Msg ) -> ( Model , Cmd Msg )
 updateBrike (nx,ny) list1 (model,cmd) =
     let
-        nbrick = List.filter (checkbrike model.ball.color (nx,ny)) list1
+        nbrick = List.filter (checkbrike 0 model.ball.color (nx,ny)) list1
+        ggbrick = List.filter ( checkbrike 1 model.ball.color (nx,ny)) list1
         nscore = ((List.length model.bricks) - (List.length nbrick))*100 + model.score
     in
         ( { model | bricks = nbrick , score = nscore } , Cmd.none )
