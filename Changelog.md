@@ -50,6 +50,9 @@ All notable changes to this project are documented in this file.
 - Added the level change part
 - Use the Tick to make sure the game runs in the same velocity on different computers
 
+#[2.7] -- {2022/6/16} Added
+- modify the level change part make the video more smooth
+
 #[version] -- {Date}
 	Added
 
