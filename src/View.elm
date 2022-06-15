@@ -169,6 +169,19 @@ renderNeed model =
 
 renderPanel : Model -> Html Msg
 renderPanel model =
+    let
+        (x,y) = model.ending.pos
+        a = 1.0*13/180000
+        b = -13/30
+        t0 = (-b-Basics.sqrt(b*b-4*a*x))/(2*a)
+        v0 = 13/30-650/1500/3000*t0
+        v1 = v0-model.dt*650/1500/3000
+        dx = (v0+v1)*model.dt/2
+        (nx,ny) = 
+            if x <= 650 then
+                ( x + dx , y - dx/2 )
+            else (x,y)
+    in
     div
         [ style "bottom" "80px"
         , style "color" "#34495f"
@@ -179,12 +192,12 @@ renderPanel model =
         , style "position" "absolute"
         , style "top" "0"
         ]
-        [ renderTitle "Elf"
+        [ renderTitle model
         , renderTxT "Money" "#bdc3c7"
         , renderCount  model.score
-       -- , renderCountt  (Tuple.first model.ending.pos)
-     --   , renderCountt  (Tuple.second model.ending.pos)
-      --  , renderCountt  model.dt
+        , renderCountt  b
+        , renderCountt  ( Basics.sqrt(b*b-4*a*x)-b )
+        , renderCountt  t0
         , renderEnd model.state "You lose! Please Try Again!"
         , renderGameButton model.state
         , renderNextButton model
@@ -192,15 +205,21 @@ renderPanel model =
 
 
 
-renderTitle : String -> Html Msg
-renderTitle txt =
+renderTitle : Model -> Html Msg
+renderTitle model =
     div
         [ style "color" "#34495f"
         , style "font-size" "40px"
         , style "line-height" "60px"
         , style "margin" "30px 0 0"
         ]
-        [ text txt ]
+        [ text 
+        ( case model.level.id of
+            1 -> "Level1: Pinnacle"
+            2 -> "Level2: Turret"
+            _ -> "Level3: Palace"
+        )
+        ]
 
 
 renderTxT : String -> String -> Html Msg
@@ -271,8 +290,11 @@ drawreac (x,y) (dx,dy) color =
 
 
 
-renderBackground : Html Msg
-renderBackground =
+renderBackground : Model -> Html Msg
+renderBackground model =
+    let
+        k = 1-(Tuple.first model.ending.pos)/650
+    in
     div
         [ style "background" "rgba(236, 240, 241, 0.3)"
         , style "color" "#34495f"
@@ -285,6 +307,7 @@ renderBackground =
         , style "position" "absolute"
         , style "top" "0"
         , style "width" "580px"
+        , style "opacity" (String.fromFloat k)
        -- , style "display" "block"
         ]
         [ 
@@ -333,7 +356,7 @@ view model =
                 ([renderNeed model
                 ,renderinfor model
                 ,renderPanel model
-                ,renderBackground 
+                ,renderBackground model
                 ,renderGame model
                 ,renderHouse model       
                 ])
@@ -343,6 +366,14 @@ view model =
            
 renderGame : Model -> Html Msg
 renderGame model = 
+    let        
+        k = 1-(Tuple.first model.ending.pos)/650
+    in
+    
+    div
+    [ HtmlAttr.style "opacity" (String.fromFloat k)
+    ]
+    [
     Svg.svg
     [ SvgAttr.width (getx 600.0)
     , SvgAttr.height (gety 800.0) 
@@ -351,7 +382,7 @@ renderGame model =
         ,viewBall model model.ball]
         ++
         (viewBlocks model.bricks))
-
+    ]
 zip : List a -> List b -> List (a, b)
 zip xs ys =
   List.map2 Tuple.pair xs ys
@@ -403,7 +434,7 @@ resmap map pass i =
 initHouse : End -> Condition -> Bricks
 initHouse end pass = 
     let
-        k = 1+(Tuple.first end.pos)/800
+        k = 1+(Tuple.first end.pos)/650
         sizex = Tuple.first end.map.size
         sizey = Tuple.second end.map.size
         rows =  (List.map (\x ->  x*(k*60)+5) ( List.map Basics.toFloat (List.range (round (5- (toFloat sizex)/2)) (round (4+ (toFloat sizex)/2)))) )
@@ -433,7 +464,7 @@ renderHouse model =
     let
         id = model.level.id
         pass = model.level.pass
-        k = 1+(Tuple.first model.ending.pos)/800
+        k = 1+(Tuple.first model.ending.pos)/650
     in
     
     div
@@ -454,10 +485,10 @@ renderHouse model =
         (List.concat 
             [ [drawreac (0,0) (600.0*k,500.0*k) "#FFFFFF"],
             case id of
-                1 -> (viewcBlocks (1+(Tuple.first model.ending.pos)/800) (initHouse model.ending pass))
-                2 -> (viewcBlocks (1+(Tuple.first model.ending.pos)/800) (initHouse model.ending pass))
-                3 -> (viewcBlocks (1+(Tuple.first model.ending.pos)/800) (initHouse model.ending pass))
-                _ -> (viewcBlocks (1+(Tuple.first model.ending.pos)/800) (initHouse model.ending pass))
+                1 -> (viewcBlocks (1+(Tuple.first model.ending.pos)/650) (initHouse model.ending pass))
+                2 -> (viewcBlocks (1+(Tuple.first model.ending.pos)/650) (initHouse model.ending pass))
+                3 -> (viewcBlocks (1+(Tuple.first model.ending.pos)/650) (initHouse model.ending pass))
+                _ -> (viewcBlocks (1+(Tuple.first model.ending.pos)/650) (initHouse model.ending pass))
             ]
         )
         ]
