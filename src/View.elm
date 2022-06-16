@@ -191,9 +191,9 @@ renderPanel model =
         [ renderTitle model
         , renderTxT "Money" "#bdc3c7"
         , renderCount  model.score
-        , renderCountt  b
-        , renderCountt  ( Basics.sqrt(b*b-4*a*x)-b )
-        , renderCountt  t0
+     --   , renderCountt  b
+     --   , renderCountt  ( Basics.sqrt(b*b-4*a*x)-b )
+     --   , renderCountt  t0
         , renderEnd model.state "You lose! Please Try Again!"
         , renderGameButton model.state
         , renderNextButton model
@@ -208,10 +208,11 @@ renderTitle model =
         , style "font-size" "40px"
         , style "line-height" "60px"
         , style "margin" "30px 0 0"
+        , style "width" "200%"
         ]
         [ text 
         ( case model.level.id of
-            1 -> "Level1: Pinnacle"
+            1 -> "Level1: Tower"
             2 -> "Level2: Turret"
             _ -> "Level3: Palace"
         )
