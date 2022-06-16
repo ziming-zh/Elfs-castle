@@ -1,4 +1,4 @@
-module Model exposing (Model,ArrowKey(..),Plate,Block,Property,Ball,Line,Bricks,State(..),Dir(..),model_init,getBrickPos,model_level1,model_level2,model_level3,initBricks,init_model2,init_model3)
+module Model exposing (Model,ArrowKey(..),Plate,Block,Property,Ball,Line,Bricks,State(..),Dir(..),init_model1,model_init,getBrickPos,model_level1,model_level2,model_level3,initBricks,init_model2,init_model3)
 import Color exposing (BallColor(..),NormalColor(..))
 import Levels exposing (Level,initLevel1,initLevel2,initLevel3)
 import Levels exposing (GMap,End)
@@ -60,6 +60,8 @@ type State
     | Playing
     | GG
     | Changing
+    | Begining
+    | Ending
     
 type ArrowKey
     = NoKey
@@ -214,15 +216,19 @@ initPlate = Plate None 250
 
 model_init : Int -> Model
 model_init x = 
-    Model 0 ( 1396, 691 ) (initBall 3) init_Map1 initPlate x False Paused 0 initLevel1 initEnding1 0
+    Model 0 (1,1) (initBall 3) init_Map1 initPlate x False Begining 0 initLevel1 initEnding1 0
+
+init_model1 : Model -> Model
+init_model1 model = 
+    Model 0 model.windowsize (initBall 3) init_Map1 initPlate 2 False Paused 0 initLevel1 initEnding1 0
 
 init_model2 : Model -> Model
 init_model2 model = 
-    Model 0 model.windowsize (newBall model.ball 2) init_Map2 initPlate model.live False Paused 0 initLevel2 initEnding2 0
+    Model 0 model.windowsize (newBall model.ball 2) init_Map2 initPlate 2 False Paused 0 initLevel2 initEnding2 0
 
 init_model3 : Model -> Model
 init_model3 model =
-    Model 0 model.windowsize (newBall model.ball 3) init_Map3 initPlate model.live False Paused 0 initLevel3 initEnding3 0
+    Model 0 model.windowsize (newBall model.ball 3) init_Map3 initPlate 2 False Paused 0 initLevel3 initEnding3 0
 
 model_level1 : Model -> Model
 model_level1 model = 

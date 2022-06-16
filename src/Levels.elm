@@ -10,13 +10,13 @@ type alias End =
     -- | Map3 GMap
 
 initLevel1 : Level
-initLevel1 = setLevel 1 (initMap1) (6,0,4) 1.0
+initLevel1 = setLevel 1 (initMap1) (0,0,0) 1.0--(6,0,4) 1.0
 
 initLevel2 : Level
-initLevel2 = setLevel 2 (initMap2) (7,3,6) 5
+initLevel2 = setLevel 2 (initMap2) (0,0,0) 1.0--(7,3,6) 5
 
 initLevel3 : Level
-initLevel3 = setLevel 3 (initMap3) (11,8,8) 1.5
+initLevel3 = setLevel 3 (initMap3) (0,0,0) 1.0--(11,8,8) 1.5
 
 type alias Condition = (Int, Int, Int) --Yellow, Blue, Purple Required
 type alias GMap = 

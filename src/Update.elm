@@ -1,10 +1,11 @@
 module Update exposing (update)
 import Message exposing (Msg(..))
-import Model exposing (Model,ArrowKey(..),Plate,Block,Property,Ball,Line,Bricks,State(..),Dir(..),model_init,getBrickPos,model_level1,model_level2,model_level3,init_model2,init_model3)
+import Model exposing (Model,ArrowKey(..),Plate,Block,Property,Ball,Line,Bricks,State(..),Dir(..),model_init,init_model1,getBrickPos,model_level1,model_level2,model_level3,init_model2,init_model3)
 import Color exposing (BallColor)
 import Color exposing (BallColor(..))
 import Color exposing (NormalColor(..))
 import Levels exposing (Condition)
+import Html exposing (q)
 
 
 
@@ -28,6 +29,9 @@ update msg model =
             , Cmd.none ) 
 
         ArrowPressed Space ->   
+            if model.state == Begining || model.state == Ending then 
+                ( model , Cmd.none )
+            else
             if model.state /= Changing then
                 ( { model | state = 
                     if model.state == Playing then Paused
@@ -48,7 +52,7 @@ update msg model =
             ( model_init 2 , Cmd.none )
 
         Pause ->
-            if model.state /= Changing then
+            if model.state /= Changing && model.state /= Ending && model.state /= Begining then
                 ( { model | state = Paused } , Cmd.none )
             else ( model , Cmd.none )
         
@@ -59,7 +63,12 @@ update msg model =
             case model.level.id of 
                 1 -> ( init_model2 model , Cmd.none )
                 2 -> ( init_model3 model , Cmd.none )
+                3 -> ( { model | state = Ending , time = 0 } , Cmd.none )
                 _ -> ( model , Cmd.none )
+
+        Begin -> 
+            ( init_model1 model , Cmd.none )
+        
             --  3 -> (final , Cmd.none)
 
      {-   _ ->
@@ -203,13 +212,11 @@ changeview ( model , cmd ) =
 
 updateGame : Model -> ( Model , Cmd Msg )
 updateGame model = 
-    if model.state == Paused || model.state == GG then
-        ( model, Cmd.none)
-    else
     if model.state == Changing then
         ( model , Cmd.none )
             |> changeview 
     else
+    if model.state == Playing then
         ( model, Cmd.none)
             |> updateTime
             |> (updateState False)
@@ -218,7 +225,11 @@ updateGame model =
             |> updateBall
             |> moveplate
             |> updatelevel
-            
+    else
+    if model.state == Begining || model.state == Ending then
+        ( { model | time = model.time + model.dt } , Cmd.none )
+    else
+        ( model, Cmd.none)
         {-    |> ballHitTheBrick
             |> ballAtTheEdge
             |> ballAtTheBottom

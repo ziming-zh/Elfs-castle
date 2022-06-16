@@ -14,6 +14,7 @@ import Color exposing (BallColor(..),NormalColor(..),type2color)
 import Levels exposing (Level,End, GMap,Condition)
 import Levels exposing (initEnding1,initEnding2,initEnding3)
 import Array exposing (Array)
+import Model exposing (State(..))
 
 getx : Float -> String
 getx x  = 
@@ -41,6 +42,12 @@ renderGameButton state =
                 
                 Model.Changing ->
                     ( "Resume" , Pause )
+
+                Model.Begining ->
+                    ( "Start" , Begin )
+                
+                Model.Ending -> 
+                    ( "New game", Start )
     in
     button
       [ style "background" "#B1E4F1"
@@ -130,7 +137,7 @@ renderinfor model =
             , SvgAttr.height (gety 700)
             ]
             [ drawreac (0,320) (202,1) "#242424" , drawreac (0,320) (1,10) "#242424" , drawreac (0,330) (202,1) "#242424" , drawreac (202,320) (1,10) "#242424"
-            , drawreac (1,321) (model.ball.mp.val*2,8) (checkstatecolor model)
+            , drawreac (1,321) (model.ball.mp.val*2,8) "#3380BC"
             ]
         ]
 
@@ -163,6 +170,37 @@ renderNeed model =
             ,renderX "mp:" -145 440 "#bdc3c7",renderTip model "Press F!" -140 440 "#242424" 
         ]
 
+
+life : Int -> String
+life num = 
+    if num == 0 then
+        ""
+    else
+        "❤" ++ ( life (num-1) )
+
+viewlives : Int -> Html Msg
+viewlives lifes = 
+    let
+        str = life lifes
+    in
+    div
+        [ style "color" "##8E9295"
+        , style "font-weight" "300"
+        , style "font-size" "25px"
+        , style "line-height" "1"
+        , style "margin" "30px 0 0"
+        , style "left" "30px"
+        , style "position" "absolute"
+        , style "top" "500px"
+        ]
+        [   text "lives" ,
+            div
+            [ style "color" "#FF0000"
+            , style "font-size" "24px"
+            ]
+            [ text str ]
+        ]
+
 renderPanel : Model -> Html Msg
 renderPanel model =
     let
@@ -191,6 +229,7 @@ renderPanel model =
         [ renderTitle model
         , renderTxT "Money" "#bdc3c7"
         , renderCount  model.score
+        , viewlives (1+model.live)
      --   , renderCountt  b
      --   , renderCountt  ( Basics.sqrt(b*b-4*a*x)-b )
      --   , renderCountt  t0
@@ -320,47 +359,27 @@ pixelHeight : Float
 pixelHeight =
     800
 
-view : Model -> Html Msg
-view model =
+renderChanging : Model -> Html Msg
+renderChanging model = 
     let
-        ( w, h ) =
-            model.windowsize
-
-        r =
-            if w / h > (pixelWidth+200) / pixelHeight then
-                Basics.min 1 (h / pixelHeight)
-
-            else
-                Basics.min 1 (w / (pixelWidth+200))
+        k = (Tuple.first model.ending.pos)/650
     in
         div
-            [ HtmlAttr.style "width" "100%"
-            , HtmlAttr.style "height" "100%"
-            , HtmlAttr.style "position" "absolute"
-            , HtmlAttr.style "left" "0"
-            , HtmlAttr.style "top" "0"
-            ]
-            [ div
-                [ HtmlAttr.style "width" (String.fromFloat pixelWidth ++ "px")
-                , HtmlAttr.style "height"  (String.fromFloat pixelHeight ++ "px")
-                , HtmlAttr.style "position" "absolute"
-                , HtmlAttr.style "left" (String.fromFloat ((w - pixelWidth * r) / 2) ++ "px")
-                , HtmlAttr.style "top" (String.fromFloat ((h - pixelHeight * r) / 2) ++ "px")
-                , HtmlAttr.style "transform-origin" "0 0"
-                , HtmlAttr.style "transform" ("scale(" ++ String.fromFloat r ++ ")")
-                ]
-                
-                ([renderNeed model
-                ,renderinfor model
-                ,renderPanel model
-                ,renderBackground model
-                ,renderGame model
-                ,renderHouse model       
-                ])
-                    
-                
-            ]
-           
+        [ style "height" "50px"
+        , style "left" "125px"
+        , style "position" "relative"
+        , style "top" "-800px"
+        , style "opacity" (String.fromFloat k)
+        , style "color" "#34495f"
+        , style "font-size" "40px"
+        , style "line-height" "60px"
+        ]
+        [ text 
+            (case model.level.id of
+                1 -> "A tower is built!"
+                2 -> "A turret is built"
+                _ -> "A palace is built"
+            ) ]
 renderGame : Model -> Html Msg
 renderGame model = 
     let        
@@ -551,3 +570,127 @@ viewBall model ball =
         fanshapes = View.FanShape (offset*100) (percentage*100) (type2color ball.color) ball.pos
     in
        View.viewFanShape fanshapes
+
+
+renderBeginButton : Int -> Html Msg
+renderBeginButton x =
+    let
+        ( txt, msg ) =
+            if x == 1 then 
+                ( "Start" , Begin )
+            else ( "New game" , Start )
+    in
+    button
+      [ style "background" "#B1E4F1"
+        , style "border" "0"
+        , style "color" "#fff"
+        , style "font-family" "Helvetica, Arial, sans-serif"
+        , style "font-size" "18px"
+        , style "height" "50px"
+        , style "line-height" "45px"
+        , style "width" "100px"
+        , style "left" "830px"
+        , style "top" "130px"
+        , style "position" "absolute"
+        , onClick msg
+        ]
+        [ text txt ]
+       
+view : Model -> Html Msg
+view model =
+    let
+        ( w, h ) =
+            model.windowsize
+
+        r =
+            if w / h > (pixelWidth+200) / pixelHeight then
+                Basics.min 1 (h / pixelHeight)
+
+            else
+                Basics.min 1 (w / (pixelWidth+200))
+    in  
+        div
+            [ HtmlAttr.style "width" "100%"
+            , HtmlAttr.style "height" "100%"
+            , HtmlAttr.style "position" "absolute"
+            , HtmlAttr.style "left" "0"
+            , HtmlAttr.style "top" "0"
+            ]
+        (
+        if model.state == Begining then
+            [div
+                []
+                [ Html.img
+                    [ HtmlAttr.src "image/Begining.png"  
+                    , style "width" (String.fromFloat (w*3/4) ++ "px")
+                    , style "height"  (String.fromFloat h ++ "px")
+                    , style "position" "absolute"
+                    , style "opacity" (String.fromFloat (model.time/1000))
+                    ] []
+                ]
+            , div 
+                [ style "opacity" (String.fromFloat (Basics.max (model.time/1000-1) 0)) ]
+                [renderBeginButton 1]
+            ]
+        else if model.state == Ending then
+            [div
+                []
+                [ Html.img
+                    [ HtmlAttr.src "image/Begining.png"  
+                    , style "width" (String.fromFloat (w*3/4) ++ "px")
+                    , style "height"  (String.fromFloat h ++ "px")
+                    , style "position" "absolute"
+                    , style "opacity" (String.fromFloat (model.time/1000))
+                    ] []
+                ]
+            , div 
+                [ style "opacity" (String.fromFloat (Basics.max (model.time/1000-3) 0)) ]
+                [renderBeginButton 2]
+            , div
+                [style "bottom" "80px"
+                , style "color" "#34495f"
+                , style "font-family" "Helvetica, Arial, sans-serif"
+                , style "font-size" "4px"
+                , style "left" "800px"
+                , style "padding" "0 30px"
+                , style "position" "absolute"
+                , style "top" "0" 
+                , style "opacity" (String.fromFloat (Basics.max (model.time/1000-1) 0))
+                ]
+                [renderTxT "Final Money:" "#423C38"]
+            ,   div
+                [style "bottom" "80px"
+                , style "color" "#34495f"
+                , style "font-family" "Helvetica, Arial, sans-serif"
+                , style "font-size" "4px"
+                , style "left" "800px"
+                , style "padding" "0 30px"
+                , style "position" "absolute"
+                , style "top" "50px" 
+                , style "opacity" (String.fromFloat (Basics.max (model.time/1000-2) 0))
+                ]
+                [renderTxT ((String.fromInt model.score)++"$") "#BFBC00"]
+            ]
+        else
+            ([ div
+                [ HtmlAttr.style "width" (String.fromFloat pixelWidth ++ "px")
+                , HtmlAttr.style "height"  (String.fromFloat pixelHeight ++ "px")
+                , HtmlAttr.style "position" "absolute"
+                 , HtmlAttr.style "left" (String.fromFloat ((w - pixelWidth * r) / 2) ++ "px")
+                , HtmlAttr.style "top" (String.fromFloat ((h - pixelHeight * r) / 2) ++ "px")
+                , HtmlAttr.style "transform-origin" "0 0"
+                , HtmlAttr.style "transform" ("scale(" ++ String.fromFloat r ++ ")")
+                ]
+                
+                ([renderNeed model
+                ,renderinfor model
+                ,renderPanel model
+                ,renderBackground model
+                ,renderGame model
+                ,renderHouse model
+                ,renderChanging model
+                ])
+                   
+            ]
+            )
+        )
