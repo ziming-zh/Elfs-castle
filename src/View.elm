@@ -3,7 +3,7 @@ import Svg exposing (Svg, Attribute, svg, rect, defs, filter, feGaussianBlur, fe
 {-import Svg.Attributes exposing (width, height, viewBox, x, y, rx, fill, id, stdDeviation, result)-}
 import Svg.Attributes as SvgAttr
 import Message exposing (Msg(..))
-import Model exposing (Model,Bricks,Ball,Plate,State,getBrickPos)
+import Model exposing (Model,Bricks,Ball,Plate,State,getBrickPos,initBricks)
 import Html exposing (..)
 import Html.Attributes as HtmlAttr exposing (..)
 import Html.Events exposing (onClick)
@@ -11,7 +11,9 @@ import Color exposing (Color)
 import Markdown
 import View.Pacman as View
 import Color exposing (BallColor(..),NormalColor(..),type2color)
-import Levels exposing (Level)
+import Levels exposing (Level,End, GMap,Condition)
+import Levels exposing (initEnding1,initEnding2,initEnding3)
+import Array exposing (Array)
 
 getx : Float -> String
 getx x  = 
@@ -36,24 +38,47 @@ renderGameButton state =
 
                 Model.Paused ->
                     ( "Resume", Resume ) 
+                
+                Model.Changing ->
+                    ( "Resume" , Pause )
     in
     button
-        [ style "background" "#B1E4F1"
+      [ style "background" "#B1E4F1"
         , style "border" "0"
         , style "bottom" "30px"
         , style "color" "#fff"
-        , style "cursor" "pointer"
-        , style "display" "block"
         , style "font-family" "Helvetica, Arial, sans-serif"
         , style "font-size" "18px"
-        , style "font-weight" "300"
         , style "height" "60px"
         , style "left" "30px"
         , style "line-height" "60px"
-        , style "outline" "none"
-        , style "padding" "0"
         , style "position" "absolute"
         , style "width" "120px"
+        , onClick msg
+        ]
+        [ text txt ]
+        
+renderNextButton : Model -> Html Msg
+renderNextButton model =
+    let
+        ( txt, msg ) =
+            ( "Next level" , Next )
+    in
+    button
+      [ style "background" "#B1E4F1"
+        , style "border" "0"
+        , style "bottom" "100px"
+        , style "color" "#fff"
+        , style "font-family" "Helvetica, Arial, sans-serif"
+        , style "font-size" "10px"
+        , style "height" "30px"
+        , style "left" "30px"
+        , style "line-height" "30px"
+        , style "position" "absolute"
+        , style "width" "120px"
+        , style "display" 
+            (if model.state == Model.Changing then "block"
+            else "none")
         , onClick msg
         ]
         [ text txt ]
@@ -140,37 +165,57 @@ renderNeed model =
 
 renderPanel : Model -> Html Msg
 renderPanel model =
+    let
+        (x,y) = model.ending.pos
+        a = 1.0*13/180000
+        b = -13/30
+        t0 = (-b-Basics.sqrt(b*b-4*a*x))/(2*a)
+        v0 = 13/30-650/1500/3000*t0
+        v1 = v0-model.dt*650/1500/3000
+        dx = (v0+v1)*model.dt/2
+        (nx,ny) = 
+            if x <= 650 then
+                ( x + dx , y - dx/2 )
+            else (x,y)
+    in
     div
         [ style "bottom" "80px"
         , style "color" "#34495f"
         , style "font-family" "Helvetica, Arial, sans-serif"
-        , style "font-size" "14px"
+        , style "font-size" "4px"
         , style "left" "600px"
         , style "padding" "0 30px"
         , style "position" "absolute"
-        , style "right" "0"
         , style "top" "0"
         ]
-        [ renderTitle "Elf"
-        , renderTxT "Score" "#bdc3c7"
+        [ renderTitle model
+        , renderTxT "Money" "#bdc3c7"
         , renderCount  model.score
-        , renderCountt  (Tuple.first model.ball.vel)
-        , renderCountt  (Tuple.second model.ball.vel)
-        , renderEnd model.state "The Elf is Upset! Please Try Again!"
+        , renderCountt  b
+        , renderCountt  ( Basics.sqrt(b*b-4*a*x)-b )
+        , renderCountt  t0
+        , renderEnd model.state "You lose! Please Try Again!"
         , renderGameButton model.state
+        , renderNextButton model
         ]
 
 
 
-renderTitle : String -> Html Msg
-renderTitle txt =
+renderTitle : Model -> Html Msg
+renderTitle model =
     div
         [ style "color" "#34495f"
         , style "font-size" "40px"
         , style "line-height" "60px"
         , style "margin" "30px 0 0"
         ]
-        [ text txt ]
+        [ text 
+        ( case model.level.id of
+            1 -> "Level1: Pinnacle"
+            2 -> "Level2: Turret"
+            _ -> "Level3: Palace"
+        )
+        ]
 
 
 renderTxT : String -> String -> Html Msg
@@ -187,12 +232,11 @@ renderTxT txt color =
 renderEnd : State -> String -> Html Msg
 renderEnd state txt =
     div
-        [ style "font-size" "40px"
+        [ style "font-size" "25px"
         , style "font-weight" "700"
         , style "line-height" "1"
-        , style "margin" "30px 0 0"
-        , style "bottom" "250px"
-        , style "left" "30px"
+        , style "bottom" "200px"
+        , style "left" "-450px"
         , style "position" "absolute"
         , style "display"
           ( if state == Model.GG then "block"
@@ -242,8 +286,11 @@ drawreac (x,y) (dx,dy) color =
 
 
 
-renderBackground : Html Msg
-renderBackground =
+renderBackground : Model -> Html Msg
+renderBackground model =
+    let
+        k = 1-(Tuple.first model.ending.pos)/650
+    in
     div
         [ style "background" "rgba(236, 240, 241, 0.3)"
         , style "color" "#34495f"
@@ -255,7 +302,8 @@ renderBackground =
         , style "padding" "0 15px"
         , style "position" "absolute"
         , style "top" "0"
-        , style "width" "580px"
+        , style "width" "600px"
+        , style "opacity" (String.fromFloat k)
        -- , style "display" "block"
         ]
         [ 
@@ -304,8 +352,9 @@ view model =
                 ([renderNeed model
                 ,renderinfor model
                 ,renderPanel model
-                ,renderBackground 
-                ,renderGame model       
+                ,renderBackground model
+                ,renderGame model
+                ,renderHouse model       
                 ])
                     
                 
@@ -313,6 +362,14 @@ view model =
            
 renderGame : Model -> Html Msg
 renderGame model = 
+    let        
+        k = 1-(Tuple.first model.ending.pos)/650
+    in
+    
+    div
+    [ HtmlAttr.style "opacity" (String.fromFloat k)
+    ]
+    [
     Svg.svg
     [ SvgAttr.width (getx 600.0)
     , SvgAttr.height (gety 800.0) 
@@ -321,6 +378,117 @@ renderGame model =
         ,viewBall model model.ball]
         ++
         (viewBlocks model.bricks))
+    ]
+zip : List a -> List b -> List (a, b)
+zip xs ys =
+  List.map2 Tuple.pair xs ys
+
+changeColor : (NormalColor,Bool) -> NormalColor -> ( NormalColor, Bool)
+changeColor (element,deleted) aimcolor  = 
+    if deleted == True && element == aimcolor then
+        (Nocolor, False)
+    else 
+        (element, False)
+
+revealColor :  NormalColor -> Int -> List NormalColor -> List NormalColor
+revealColor  color remaining map = 
+    if remaining<=0 then
+        map
+    else 
+        revealColor color (remaining+(-1)) (Tuple.first (List.unzip (List.map (\x -> changeColor (x,True) color ) map)))
+
+resmap : GMap -> Condition -> Int -> GMap
+resmap map pass i = 
+    if i == (List.length map.color) + 1 then map
+    else
+        let 
+            (y,b,p) = pass 
+            color = List.head ( List.drop (i-1) map.color )
+            ( nmap , npass ) = 
+                case color of 
+                    Just a -> 
+                        case a of 
+                            Yellow -> 
+                                if y > 0 then
+                                    ( List.concat [ List.take (i-1) map.color , [Nocolor] , List.drop i map.color ] , (y-1,b,p) )
+                                else ( map.color , pass )
+                            Blue ->
+                                if b > 0 then
+                                    ( List.concat [ List.take (i-1) map.color , [Nocolor] , List.drop i map.color ] , (y,b-1,p) )
+                                else ( map.color , pass )
+                            Purple ->
+                                if p > 0 then
+                                    ( List.concat [ List.take (i-1) map.color , [Nocolor] , List.drop i map.color ] , (y,b,p-1) )
+                                else ( map.color , pass )
+                            Black -> ( map.color , pass )
+                            _ -> ( map.color , pass )
+                    _ -> ( map.color , pass )
+                    
+        in  
+            resmap ( { map | color = nmap } ) npass (i+1)
+
+initHouse : End -> Condition -> Bricks
+initHouse end pass = 
+    let
+        k = 1+(Tuple.first end.pos)/650
+        sizex = Tuple.first end.map.size
+        sizey = Tuple.second end.map.size
+        rows =  (List.map (\x ->  x*(k*60)+5) ( List.map Basics.toFloat (List.range (round (5- (toFloat sizex)/2)) (round (4+ (toFloat sizex)/2)))) )
+        cols = (List.map (\x ->  x*(k*60)+50) ( List.map Basics.toFloat (List.range 0 sizey)) )
+        line =
+            \y -> List.map (\x -> Tuple.pair x y) rows
+        sol =List.map line cols
+            |> List.concat
+        yel = case pass of 
+            (a,_,_) -> a
+        blue = case pass of 
+            (_,b,_) -> b
+        pur = case pass of 
+            (_,_,c) -> c
+        nmap = resmap end.map pass 1
+    in
+        -- zip sol (List.map (\y -> (revealColor map.color (Tuple.first y) (Tuple.second y))) (colorChecker condition))
+       -- revealColor Purple pur map.color
+       -- |> revealColor Yellow yel
+       -- |> revealColor Blue blue
+        nmap.color 
+        |> zip sol
+
+
+renderHouse : Model -> Html Msg
+renderHouse model = 
+    let
+        id = model.level.id
+        pass = model.level.pass
+        k = 1+(Tuple.first model.ending.pos)/650
+    in
+    
+    div
+        [ 
+          style "color" "#34495f"
+        , style "font-family" "Helvetica, Arial, sans-serif"
+        , style "font-size" "5px"
+        , style "left" ((String.fromFloat (( Tuple.first model.ending.pos )-600))++"px")
+        , style "position" "absolute"
+        , style "top" ((String.fromFloat (( Tuple.second model.ending.pos )+1100))++"px")
+        , style "zoom" "0.5" 
+        ]
+        [
+        Svg.svg
+        [ SvgAttr.width (getx (600.0*k))
+        , SvgAttr.height (gety (500.0*k)) 
+        ]     
+        (List.concat 
+            [ [drawreac (0,0) (600.0*k,500.0*k) "#FFFFFF"],
+            case id of
+                1 -> (viewcBlocks (1+(Tuple.first model.ending.pos)/650) (initHouse model.ending pass))
+                2 -> (viewcBlocks (1+(Tuple.first model.ending.pos)/650) (initHouse model.ending pass))
+                3 -> (viewcBlocks (1+(Tuple.first model.ending.pos)/650) (initHouse model.ending pass))
+                _ -> (viewcBlocks (1+(Tuple.first model.ending.pos)/650) (initHouse model.ending pass))
+            ]
+        )
+        ]
+    
 
 
 
@@ -340,13 +508,21 @@ viewPlate model plate =
 
 drawBlocks : ((Float,Float) , NormalColor) -> Html Msg
 drawBlocks  ((x,y),normalcolor) = 
-    drawreac (x, y) (50,50)  (type2color (Normal normalcolor))
+    drawreac (x+10, y+10) (40,40)  (type2color (Normal normalcolor))
 
 
 viewBlocks : Bricks -> List (Html Msg)
 viewBlocks blocks =
     List.map drawBlocks blocks
 
+drawcBlocks : Float -> ((Float,Float) , NormalColor) -> Html Msg
+drawcBlocks k ((x,y),normalcolor) = 
+    drawreac (x, y) (k*50,k*50)  (type2color (Normal normalcolor))
+
+
+viewcBlocks : Float -> Bricks -> List (Html Msg)
+viewcBlocks k blocks =
+    List.map (drawcBlocks k) blocks
 
 drawcir : ( Float , Float ) -> Float -> String -> Html Msg
 drawcir (x,y)  r color =
@@ -360,7 +536,7 @@ viewBall model ball =
     -- drawcir ( Tuple.first ball.pos , Tuple.second ball.pos ) 15 "#FFEC8B"
     -- View.pacman model
     let
-        (vx,vy) =ball.vel
+        (vx,vy) = ball.vel
         neg num = 
             if num > 0 then 1
             else 0
