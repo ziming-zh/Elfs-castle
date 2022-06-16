@@ -96,14 +96,48 @@ initBricks level =
     let
         sizex = Tuple.first level.map.size
         sizey = Tuple.second level.map.size
-        rows = List.map (\x -> (toFloat x)) (List.map (\x ->  x*60+5) (List.range (round (5- (toFloat sizex)/2)) (round (4+ (toFloat sizex)/2))))
-        cols = List.map (\x -> (toFloat x)) (List.map (\x ->  x*60+50) (List.range 0 sizey))
+        rows = List.map (\x -> (toFloat x)) (List.map (\x ->  x*50+5) (List.range (round (5- (toFloat sizex)/2)) (round (4+ (toFloat sizex)/2))))
+        cols = List.map (\x -> (toFloat x)) (List.map (\x ->  x*50+50) (List.range 0 sizey))
         line =
             \y -> List.map (\x -> Tuple.pair x y) rows
         sol =List.map line cols
             |> List.concat
     in
         zip sol level.map.color  
+    
+getline : ( Float , Float ) -> ( Float , Float ) -> Int -> List ( Float , Float )
+getline (x0,y0) (dx,dy) n = 
+    List.map ( \x -> (x0+dx*x,y0+dy*x) ) ( List.map (\x -> (toFloat x)) (List.range 0 (n-1)) )
+
+changeColor : List NormalColor -> List Int -> Int -> List NormalColor
+changeColor color list k =
+    let
+        id = List.head ( List.drop (k-1) list )
+    in    
+        case id of 
+            Just i ->
+                changeColor (List.concat [ List.take (i-1) color , [Black] , List.drop i color ] ) list (k+1)
+            _ -> color
+init_Map1 : Level -> Bricks 
+init_Map1 level = 
+    let
+        l1 = getline (75,50) (100,0) 5
+        l2 = getline (125,100) (100,0) 4
+        l3 = getline (75,150) (100,0) 5
+        l4 = getline (125,200) (100,0) 4
+        l5 = getline (75,250) (100,0) 5
+        l6 = getline (125,300) (100,0) 4
+        l7 = getline (75,350) (100,0) 5
+        l8 = getline (175,100) (200,0) 2
+        l9 = getline (175,200) (200,0) 2
+        l10 = getline (125,150) (100,0) 4
+        l11 = getline (175,300) (200,0) 2
+        l = List.concat [l1,l2,l3,l4,l5,l6,l7,l8,l9,l10,l11]
+        color = List.concat[List.repeat 32 Grey,List.repeat 4 Purple,List.repeat 6 Yellow]
+        lb = [3,7,8,12,21,30,1,5,10,14,19,23,28,32]
+        ncolor = changeColor color lb 1
+    in
+        zip l ncolor
 
 getBrickPos : Bricks -> List (Float, Float)
 getBrickPos bricks = 
@@ -114,7 +148,7 @@ initPlate = Plate None 250
 
 model_init : Int -> Model
 model_init x = 
-    Model 0 ( 1396, 691 ) (initBall 3) (initBricks initLevel1) initPlate x False Paused 0 initLevel1 initEnding1 0
+    Model 0 ( 1396, 691 ) (initBall 3) (init_Map1 initLevel1) initPlate x False Paused 0 initLevel1 initEnding1 0
 
 init_model1 : Model -> Model
 init_model1 model = 

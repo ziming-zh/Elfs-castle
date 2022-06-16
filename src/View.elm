@@ -49,11 +49,9 @@ renderGameButton state =
         , style "color" "#fff"
         , style "font-family" "Helvetica, Arial, sans-serif"
         , style "font-size" "18px"
-        , style "font-weight" "300"
         , style "height" "60px"
         , style "left" "30px"
         , style "line-height" "60px"
-        , style "padding" "0"
         , style "position" "absolute"
         , style "width" "120px"
         , onClick msg
@@ -73,14 +71,12 @@ renderNextButton model =
         , style "color" "#fff"
         , style "font-family" "Helvetica, Arial, sans-serif"
         , style "font-size" "10px"
-        , style "font-weight" "300"
         , style "height" "30px"
         , style "left" "30px"
         , style "line-height" "30px"
-        , style "padding" "0"
         , style "position" "absolute"
         , style "width" "120px"
-        , style "displaying" 
+        , style "display" 
             (if model.state == Model.Changing then "block"
             else "none")
         , onClick msg
@@ -306,7 +302,7 @@ renderBackground model =
         , style "padding" "0 15px"
         , style "position" "absolute"
         , style "top" "0"
-        , style "width" "580px"
+        , style "width" "600px"
         , style "opacity" (String.fromFloat k)
        -- , style "display" "block"
         ]
@@ -412,8 +408,6 @@ resmap map pass i =
                 case color of 
                     Just a -> 
                         case a of 
-                            Black -> ( map.color , pass )
-                            Nocolor -> ( map.color , pass )
                             Yellow -> 
                                 if y > 0 then
                                     ( List.concat [ List.take (i-1) map.color , [Nocolor] , List.drop i map.color ] , (y-1,b,p) )
@@ -426,6 +420,8 @@ resmap map pass i =
                                 if p > 0 then
                                     ( List.concat [ List.take (i-1) map.color , [Nocolor] , List.drop i map.color ] , (y,b,p-1) )
                                 else ( map.color , pass )
+                            Black -> ( map.color , pass )
+                            _ -> ( map.color , pass )
                     _ -> ( map.color , pass )
                     
         in  
@@ -512,7 +508,7 @@ viewPlate model plate =
 
 drawBlocks : ((Float,Float) , NormalColor) -> Html Msg
 drawBlocks  ((x,y),normalcolor) = 
-    drawreac (x, y) (50,50)  (type2color (Normal normalcolor))
+    drawreac (x+10, y+10) (40,40)  (type2color (Normal normalcolor))
 
 
 viewBlocks : Bricks -> List (Html Msg)
@@ -540,7 +536,7 @@ viewBall model ball =
     -- drawcir ( Tuple.first ball.pos , Tuple.second ball.pos ) 15 "#FFEC8B"
     -- View.pacman model
     let
-        (vx,vy) =ball.vel
+        (vx,vy) = ball.vel
         neg num = 
             if num > 0 then 1
             else 0

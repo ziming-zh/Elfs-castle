@@ -236,17 +236,17 @@ collide (nx,ny) (a,b) line =
     let
         (x1,y1) = line.p1
         (x2,y2) = line.p2
-        inside1 = dis (x1,y1) (nx,ny) <= 25
-        inside2 = dis (x2,y2) (nx,ny) <= 25
+        inside1 = dis (x1,y1) (nx,ny) <= 20
+        inside2 = dis (x2,y2) (nx,ny) <= 20
     in
         if b == 0 then 
             if y1 == y2  then 
                 if a == 1 then
-                   ( ny <= y1+25 && ny >= y1 && nx >= x1 && nx <= x2 )
+                   ( ny <= y1+20 && ny >= y1 && nx >= x1 && nx <= x2 )
                 || ( inside1 && nx+ny >= x1+y1 )
                 || ( inside2 && ny-nx >= y2-x2  )
                 else 
-                   ( ny >= y1-25 && ny <= y1 && nx >= x1 && nx <= x2 )
+                   ( ny >= y1-20 && ny <= y1 && nx >= x1 && nx <= x2 )
                 || ( inside1 && ny-nx <= y1-x1)
                 || ( inside2 && nx+ny <= x2+y2 )
             else False
@@ -254,20 +254,20 @@ collide (nx,ny) (a,b) line =
         if a == 0 then
             if x1 == x2 then
                 if b == 1 then
-                   ( nx <= x1 && nx >= x1-25 && ny >= y1 && ny <= y2 )
+                   ( nx <= x1 && nx >= x1-20 && ny >= y1 && ny <= y2 )
                 || ( inside1 && ny-nx >= y1-x1 )
                 || ( inside2 && nx+ny <= y2+x2 )
                 else
-                   ( nx >= x1 && nx <= x1+25 && ny >= y1 && ny <= y2 )
+                   ( nx >= x1 && nx <= x1+20 && ny >= y1 && ny <= y2 )
                 || ( inside1 && nx+ny >= x1+y1 )
                 || ( inside2 && ny-nx <= y2-x2 )
             else False
         else 
             if x1 == x2 then
-               ( nx >= x1-25 && nx <= x1+25 && ny >= y1 && ny <= y2 )
+               ( nx >= x1-20 && nx <= x1+20 && ny >= y1 && ny <= y2 )
             || inside1 || inside2
             else
-               ( ny >= y1-25 && ny <= y1+25 && nx >= x1 && nx <= x2 )
+               ( ny >= y1-20 && ny <= y1+20 && nx >= x1 && nx <= x2 )
             || inside1 || inside2
 
 updateSpeed : ( Float , Float ) -> Dir -> Int -> ( Float , Float )
@@ -366,24 +366,26 @@ ballHitTheBrick ( model , cmd ) =
     let
         lball =
             model.ball
-        ( lx , ly ) = ( Tuple.first (lball.pos) , Tuple.second (lball.pos) )
+        ( lx , ly ) = lball.pos
+        ( vx , vy ) = lball.vel
 
-        ( nx , ny ) = ( lx + (Tuple.first (lball.vel))*model.dt/6 , ly + (Tuple.second (lball.vel))*model.dt/6 )
+        ( nx , ny ) = ( lx + vx*model.dt/6 , ly + vy*model.dt/6 )
         bottomline = setbottomLine
         -- twist the velocity direction
         lineb = getlines ( List.filter (\block -> (Tuple.second block) == Blue) model.bricks ) 
         
         linep = getlines ( List.filter (\block -> (Tuple.second block) == Purple) model.bricks ) 
         liney = getlines ( List.filter (\block -> (Tuple.second block) == Yellow) model.bricks ) 
-        lineB = getlines ( List.filter (\block -> (Tuple.second block) == Black) model.bricks ) 
-        lineball = List.concat [lineb,linep,liney] 
+        lineB = getlines ( List.filter (\block -> (Tuple.second block) == Black) model.bricks )
+        lineg = getlines ( List.filter (\block -> (Tuple.second block) == Grey) model.bricks )
+        lineball = List.concat [lineb,linep,liney,lineg] 
         plate = [pointtoline (150,0) (model.plate.pos,780),{p1=(600,0),p2=(600,780)},{p1=(0,0),p2=(600,0)},{p1=(0,0),p2=(0,780)}]
         line = List.concat [plate,lineB,lineball]
         lines = List.concat [plate,line]
         --lines = List.concat [[pointtoline (600,0) (0,780)],line]
-        nvel1 = ( Tuple.first model.ball.vel , -(Tuple.second model.ball.vel ))
-        nvel2 = ( -(Tuple.first model.ball.vel) , Tuple.second model.ball.vel)
-        nvel4 = ( -(Tuple.first model.ball.vel) , -(Tuple.second model.ball.vel ))
+        nvel1 = ( vx , -vy)
+        nvel2 = ( -vx , vy)
+        nvel4 = ( -vx , -vy)
         nvel3 = 
             if down plate then
                 if (model.plate.state /= None) then updateSpeed nvel1 model.plate.state model.level.id
