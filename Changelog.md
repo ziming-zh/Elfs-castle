@@ -53,6 +53,11 @@ All notable changes to this project are documented in this file.
 #[2.7] -- {2022/6/16} Added
 - modify the level change part make the video more smooth
 
+#[3.1] -- {2022/6/16} Added
+- Redesign and draw all the maps
+- Adjust the ball's size to fit the map
+- Add the function to calculate score after each level
+
 #[version] -- {Date}
 	Added
 
