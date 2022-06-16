@@ -57,6 +57,7 @@ All notable changes to this project are documented in this file.
 - Redesign and draw all the maps
 - Adjust the ball's size to fit the map
 - Add the function to calculate score after each level
+- Add the begining and ending section
 
 #[version] -- {Date}
 	Added
