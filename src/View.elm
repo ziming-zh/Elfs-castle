@@ -3,7 +3,7 @@ import Svg exposing (Svg, Attribute, svg, rect, defs, filter, feGaussianBlur, fe
 {-import Svg.Attributes exposing (width, height, viewBox, x, y, rx, fill, id, stdDeviation, result)-}
 import Svg.Attributes as SvgAttr
 import Message exposing (Msg(..))
-import Model exposing (Model,Bricks,Ball,Plate,State,getBrickPos,initBricks)
+import Model exposing (Model,Doorstate,Door,Bricks,Ball,Plate,State,getBrickPos,initBricks)
 import Html exposing (..)
 import Html.Attributes as HtmlAttr exposing (..)
 import Html.Events exposing (onClick)
@@ -230,13 +230,12 @@ renderPanel model =
         , renderTxT "Money" "#bdc3c7"
         , renderCount  model.score
         , viewlives (1+model.live)
-     --   , renderCountt  b
      --   , renderCountt  ( Basics.sqrt(b*b-4*a*x)-b )
-     --   , renderCountt  t0
+     --   , renderCountt  model.dt
         , renderEnd model.state "You lose! Please Try Again!"
         , renderGameButton model.state
         , renderNextButton model
-        ]
+         ]
 
 
 
@@ -488,7 +487,7 @@ renderHouse model =
           style "color" "#34495f"
         , style "font-family" "Helvetica, Arial, sans-serif"
         , style "font-size" "5px"
-        , style "left" ((String.fromFloat (( Tuple.first model.ending.pos )-600))++"px")
+        , style "left" ((String.fromFloat (( Tuple.first model.ending.pos )-700))++"px")
         , style "position" "absolute"
         , style "top" ((String.fromFloat (( Tuple.second model.ending.pos )+1100))++"px")
         , style "zoom" "0.5" 
@@ -595,7 +594,44 @@ renderBeginButton x =
         , onClick msg
         ]
         [ text txt ]
-       
+
+viewdoor : Model -> Html Msg
+viewdoor model = 
+    let
+        ( x , y ) = 
+            case model.level.id of 
+                1 -> ( 283 , 108 )
+                2 -> ( 283 , 33 )
+                _ -> ( 283 , 133 )
+        k = Basics.max 0 (1-(Tuple.first model.ending.pos)/650)
+        t = model.door.time
+        k1 = Basics.max 0 (1-t/1000)
+        k2 = Basics.min 1 (t/1000)
+        img1 = "./assets/closed.png"
+        img2 = "./assets/open.png"
+    in
+    div
+    [HtmlAttr.style "opacity" (String.fromFloat k)]
+    [ Html.img
+        [ HtmlAttr.src img1
+        , style "width" "45px"
+        , style "height" "45px"
+        , style "position" "absolute"
+        , style "left" ((String.fromInt x)++"px")
+        , style "top" ((String.fromInt y)++"px")
+        , HtmlAttr.style "opacity" (String.fromFloat k1)
+        ] []
+    ,Html.img
+        [ HtmlAttr.src img2
+        , style "width" "45px"
+        , style "height" "45px"
+        , style "position" "absolute"
+        , style "left" ((String.fromInt x)++"px")
+        , style "top" ((String.fromInt y)++"px")
+        , HtmlAttr.style "opacity" (String.fromFloat k2)
+        ] []
+    ]
+
 view : Model -> Html Msg
 view model =
     let
@@ -616,81 +652,83 @@ view model =
             , HtmlAttr.style "left" "0"
             , HtmlAttr.style "top" "0"
             ]
-        (
-        if model.state == Begining then
-            [div
-                []
-                [ Html.img
-                    [ HtmlAttr.src "./assets/beginning.png"  
-                    , style "width" (String.fromFloat (w*3/4) ++ "px")
-                    , style "height"  (String.fromFloat h ++ "px")
+            (
+            List.concat [ (
+            if model.state == Begining then
+                [div
+                    []
+                    [ Html.img
+                        [ HtmlAttr.src "./assets/beginning.png"  
+                        , style "width" (String.fromFloat (w*3/4) ++ "px")
+                        , style "height"  (String.fromFloat h ++ "px")
+                        , style "position" "absolute"
+                        , style "opacity" (String.fromFloat (model.time/1000))
+                        ] []
+                    ]
+                , div 
+                    [ style "opacity" (String.fromFloat (Basics.max (model.time/1000-1) 0)) ]
+                    [renderBeginButton 1]
+                ]
+            else if model.state == Ending then
+                [div
+                    []
+                    [ Html.img
+                        [ HtmlAttr.src "./assets/beginning.png"  
+                        , style "width" (String.fromFloat (w*3/4) ++ "px")
+                        , style "height"  (String.fromFloat h ++ "px")
+                        , style "position" "absolute"
+                        , style "opacity" (String.fromFloat (model.time/1000))
+                        ] []
+                    ]
+                , div 
+                    [ style "opacity" (String.fromFloat (Basics.max (model.time/1000-3) 0)) ]
+                    [renderBeginButton 2]
+                , div
+                    [style "bottom" "80px"
+                    , style "color" "#34495f"
+                    , style "font-family" "Helvetica, Arial, sans-serif"
+                    , style "font-size" "4px"
+                    , style "left" "800px"
+                    , style "padding" "0 30px"
                     , style "position" "absolute"
-                    , style "opacity" (String.fromFloat (model.time/1000))
-                    ] []
-                ]
-            , div 
-                [ style "opacity" (String.fromFloat (Basics.max (model.time/1000-1) 0)) ]
-                [renderBeginButton 1]
-            ]
-        else if model.state == Ending then
-            [div
-                []
-                [ Html.img
-                    [ HtmlAttr.src "./assets/beginning.png"  
-                    , style "width" (String.fromFloat (w*3/4) ++ "px")
-                    , style "height"  (String.fromFloat h ++ "px")
+                    , style "top" "0" 
+                    , style "opacity" (String.fromFloat (Basics.max (model.time/1000-1) 0))
+                    ]
+                    [renderTxT "Final Money:" "#423C38"]
+                ,   div
+                    [style "bottom" "80px"
+                    , style "color" "#34495f"
+                    , style "font-family" "Helvetica, Arial, sans-serif"
+                    , style "font-size" "4px"
+                    , style "left" "800px"
+                    , style "padding" "0 30px"
                     , style "position" "absolute"
-                    , style "opacity" (String.fromFloat (model.time/1000))
-                    ] []
+                    , style "top" "50px" 
+                    , style "opacity" (String.fromFloat (Basics.max (model.time/1000-2) 0))
+                    ]
+                    [renderTxT ((String.fromInt model.score)++"$") "#BFBC00"]
                 ]
-            , div 
-                [ style "opacity" (String.fromFloat (Basics.max (model.time/1000-3) 0)) ]
-                [renderBeginButton 2]
-            , div
-                [style "bottom" "80px"
-                , style "color" "#34495f"
-                , style "font-family" "Helvetica, Arial, sans-serif"
-                , style "font-size" "4px"
-                , style "left" "800px"
-                , style "padding" "0 30px"
-                , style "position" "absolute"
-                , style "top" "0" 
-                , style "opacity" (String.fromFloat (Basics.max (model.time/1000-1) 0))
+            else
+                [ div
+                    [ HtmlAttr.style "width" (String.fromFloat pixelWidth ++ "px")
+                    , HtmlAttr.style "height"  (String.fromFloat pixelHeight ++ "px")
+                    , HtmlAttr.style "position" "absolute"
+                    , HtmlAttr.style "left" (String.fromFloat ((w - pixelWidth * r) / 2) ++ "px")
+                    , HtmlAttr.style "top" (String.fromFloat ((h - pixelHeight * r) / 2) ++ "px")
+                    , HtmlAttr.style "transform-origin" "0 0"
+                    , HtmlAttr.style "transform" ("scale(" ++ String.fromFloat r ++ ")")
+                    ]
+                    
+                    ([renderNeed model
+                    ,renderinfor model
+                    ,renderPanel model
+                    ,renderBackground model
+                    ,renderGame model
+                    ,renderHouse model
+                    ,renderChanging model
+                    ,viewdoor model
+                    ])
+                    
                 ]
-                [renderTxT "Final Money:" "#423C38"]
-            ,   div
-                [style "bottom" "80px"
-                , style "color" "#34495f"
-                , style "font-family" "Helvetica, Arial, sans-serif"
-                , style "font-size" "4px"
-                , style "left" "800px"
-                , style "padding" "0 30px"
-                , style "position" "absolute"
-                , style "top" "50px" 
-                , style "opacity" (String.fromFloat (Basics.max (model.time/1000-2) 0))
-                ]
-                [renderTxT ((String.fromInt model.score)++"$") "#BFBC00"]
-            ]
-        else
-            ([ div
-                [ HtmlAttr.style "width" (String.fromFloat pixelWidth ++ "px")
-                , HtmlAttr.style "height"  (String.fromFloat pixelHeight ++ "px")
-                , HtmlAttr.style "position" "absolute"
-                 , HtmlAttr.style "left" (String.fromFloat ((w - pixelWidth * r) / 2) ++ "px")
-                , HtmlAttr.style "top" (String.fromFloat ((h - pixelHeight * r) / 2) ++ "px")
-                , HtmlAttr.style "transform-origin" "0 0"
-                , HtmlAttr.style "transform" ("scale(" ++ String.fromFloat r ++ ")")
-                ]
-                
-                ([renderNeed model
-                ,renderinfor model
-                ,renderPanel model
-                ,renderBackground model
-                ,renderGame model
-                ,renderHouse model
-                ,renderChanging model
-                ])
-                   
-            ]
             )
-        )
+            ])

@@ -3,6 +3,10 @@
 # Changelog
 All notable changes to this project are documented in this file.
 
+#[3.2] -- {2022/6/17} Added
+- Modify the Level change part
+- fixed fall the existing bug
+
 #[3.1] -- {2022/6/16} Added
 
 - Redesign and draw all the maps
