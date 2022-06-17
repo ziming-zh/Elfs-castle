@@ -3,7 +3,7 @@ import Svg exposing (Svg, Attribute, svg, rect, defs, filter, feGaussianBlur, fe
 {-import Svg.Attributes exposing (width, height, viewBox, x, y, rx, fill, id, stdDeviation, result)-}
 import Svg.Attributes as SvgAttr
 import Message exposing (Msg(..))
-import Model exposing (Model,Doorstate,Door,Bricks,Ball,Plate,State,getBrickPos,initBricks)
+import Model exposing (Model,Doorstate,Door,Bricks,Ball,Plate,State,getBrickPos)
 import Html exposing (..)
 import Html.Attributes as HtmlAttr exposing (..)
 import Html.Events exposing (onClick)
@@ -53,7 +53,6 @@ renderGameButton state =
       [ style "background" "#B1E4F1"
         , style "border" "0"
         , style "bottom" "30px"
-        , style "color" "#fff"
         , style "font-family" "Helvetica, Arial, sans-serif"
         , style "font-size" "18px"
         , style "height" "60px"
@@ -75,7 +74,6 @@ renderNextButton model =
       [ style "background" "#B1E4F1"
         , style "border" "0"
         , style "bottom" "100px"
-        , style "color" "#fff"
         , style "font-family" "Helvetica, Arial, sans-serif"
         , style "font-size" "10px"
         , style "height" "30px"
@@ -137,7 +135,12 @@ renderinfor model =
             , SvgAttr.height (gety 700)
             ]
             [ drawreac (0,320) (202,1) "#242424" , drawreac (0,320) (1,10) "#242424" , drawreac (0,330) (202,1) "#242424" , drawreac (202,320) (1,10) "#242424"
-            , drawreac (1,321) (model.ball.mp.val*2,8) "#3380BC"
+            , drawreac (1,321) (model.ball.mp.val*2,8) 
+                (if model.ball.mp.val == model.ball.mp.max then "#FF6666"
+                else
+                ( case model.ball.color of 
+                    Normal aa -> "#3380BC" 
+                    Red bb -> "#FF6666" ))
             ]
         ]
 
@@ -167,7 +170,7 @@ renderNeed model =
             ,renderX "X" 70 210 "#bdc3c7",renderX "X" 70 225 "#bdc3c7",renderX "X" 70 240 "#bdc3c7"
             ,renderX (String.fromInt (Basics.max 0 x)) 100 450 "#242424",renderX (String.fromInt (Basics.max 0 y)) 100 465 "#242424"
             ,renderX (String.fromInt (Basics.max 0 z)) 100 480 "#242424"
-            ,renderX "mp:" -145 440 "#bdc3c7",renderTip model "Press F!" -140 440 "#242424" 
+            ,renderX "mp:" -145 440 "#bdc3c7",renderTip model "Press F!" -140 440 "#FF6666" 
         ]
 
 
@@ -375,9 +378,9 @@ renderChanging model =
         ]
         [ text 
             (case model.level.id of
-                1 -> "A tower is built!"
-                2 -> "A turret is built!"
-                _ -> "A palace is built!"
+                1 -> "Hooray! A Tower!!!"
+                2 -> "Hooray! A Turret!!!"
+                _ -> "Hooray! A Palace!!!"
             ) ]
 renderGame : Model -> Html Msg
 renderGame model = 
@@ -632,6 +635,68 @@ viewdoor model =
         ] []
     ]
 
+viewBegining : Model -> (Float,Float) -> Html Msg
+viewBegining model (w,h) = 
+    div
+    []
+    [div
+        []
+        [ Html.img
+            [ HtmlAttr.src "./assets/beginning.png"  
+            , style "width" (String.fromFloat (w*3/4) ++ "px")
+            , style "height"  (String.fromFloat h ++ "px")
+            , style "position" "absolute"
+            , style "opacity" (String.fromFloat (model.time/1000))
+            ] []
+        ]
+    , div 
+        [ style "opacity" (String.fromFloat (Basics.max (model.time/1000-1) 0)) ]
+        [renderBeginButton 1]
+    ]
+
+viewEnding : Model -> (Float,Float) -> Html Msg
+viewEnding model (w,h) =
+    div
+    []
+    [div
+        []
+        [ Html.img
+            [ HtmlAttr.src "./assets/beginning.png"  
+            , style "width" (String.fromFloat (w*3/4) ++ "px")
+            , style "height"  (String.fromFloat h ++ "px")
+            , style "position" "absolute"
+            , style "opacity" (String.fromFloat (model.time/1000))
+            ] []
+        ]
+    , div 
+        [ style "opacity" (String.fromFloat (Basics.max (model.time/1000-3) 0)) ]
+        [renderBeginButton 2]
+    , div
+        [style "bottom" "80px"
+        , style "color" "#34495f"
+        , style "font-family" "Helvetica, Arial, sans-serif"
+        , style "font-size" "4px"
+        , style "left" "800px"
+        , style "padding" "0 30px"
+        , style "position" "absolute"
+        , style "top" "0" 
+        , style "opacity" (String.fromFloat (Basics.max (model.time/1000-1) 0))
+        ]
+        [renderTxT "Final Money:" "#423C38"]
+    ,   div
+        [style "bottom" "80px"
+        , style "color" "#34495f"
+        , style "font-family" "Helvetica, Arial, sans-serif"
+        , style "font-size" "4px"
+        , style "left" "800px"
+        , style "padding" "0 30px"
+        , style "position" "absolute"
+        , style "top" "50px" 
+        , style "opacity" (String.fromFloat (Basics.max (model.time/1000-2) 0))
+        ]
+        [renderTxT ((String.fromInt model.score)++"$") "#BFBC00"]
+    ]
+
 view : Model -> Html Msg
 view model =
     let
@@ -653,63 +718,13 @@ view model =
             , HtmlAttr.style "top" "0"
             ]
             (
-            List.concat [ (
+            [
             if model.state == Begining then
-                [div
-                    []
-                    [ Html.img
-                        [ HtmlAttr.src "./assets/beginning.png"  
-                        , style "width" (String.fromFloat (w*3/4) ++ "px")
-                        , style "height"  (String.fromFloat h ++ "px")
-                        , style "position" "absolute"
-                        , style "opacity" (String.fromFloat (model.time/1000))
-                        ] []
-                    ]
-                , div 
-                    [ style "opacity" (String.fromFloat (Basics.max (model.time/1000-1) 0)) ]
-                    [renderBeginButton 1]
-                ]
+                viewBegining model (w,h)
             else if model.state == Ending then
-                [div
-                    []
-                    [ Html.img
-                        [ HtmlAttr.src "./assets/beginning.png"  
-                        , style "width" (String.fromFloat (w*3/4) ++ "px")
-                        , style "height"  (String.fromFloat h ++ "px")
-                        , style "position" "absolute"
-                        , style "opacity" (String.fromFloat (model.time/1000))
-                        ] []
-                    ]
-                , div 
-                    [ style "opacity" (String.fromFloat (Basics.max (model.time/1000-3) 0)) ]
-                    [renderBeginButton 2]
-                , div
-                    [style "bottom" "80px"
-                    , style "color" "#34495f"
-                    , style "font-family" "Helvetica, Arial, sans-serif"
-                    , style "font-size" "4px"
-                    , style "left" "800px"
-                    , style "padding" "0 30px"
-                    , style "position" "absolute"
-                    , style "top" "0" 
-                    , style "opacity" (String.fromFloat (Basics.max (model.time/1000-1) 0))
-                    ]
-                    [renderTxT "Final Money:" "#423C38"]
-                ,   div
-                    [style "bottom" "80px"
-                    , style "color" "#34495f"
-                    , style "font-family" "Helvetica, Arial, sans-serif"
-                    , style "font-size" "4px"
-                    , style "left" "800px"
-                    , style "padding" "0 30px"
-                    , style "position" "absolute"
-                    , style "top" "50px" 
-                    , style "opacity" (String.fromFloat (Basics.max (model.time/1000-2) 0))
-                    ]
-                    [renderTxT ((String.fromInt model.score)++"$") "#BFBC00"]
-                ]
+                viewEnding model (w,h)
             else
-                [ div
+                div
                     [ HtmlAttr.style "width" (String.fromFloat pixelWidth ++ "px")
                     , HtmlAttr.style "height"  (String.fromFloat pixelHeight ++ "px")
                     , HtmlAttr.style "position" "absolute"
@@ -728,7 +743,4 @@ view model =
                     ,renderChanging model
                     ,viewdoor model
                     ])
-                    
-                ]
-            )
             ])
