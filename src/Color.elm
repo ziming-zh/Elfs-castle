@@ -22,6 +22,7 @@ type NormalColor
     | Purple
     | Black
     | Grey
+    | Noth
     | Nocolor
 
 type2color : BallColor -> String
@@ -35,6 +36,7 @@ type2color color =
                 Grey -> "#CCCCCC"
                 Black -> "#646464"
                 Nocolor -> "#FFFFFF"
+                Noth -> "#ECF0F1"
         _ -> "#FF6666"
 
 
