@@ -307,18 +307,22 @@ ck4 (x,y) (x1,y1) (x2,y2) =
     || ( inside (x,y) (x1,y1) && x+y >= x1+y1 )
     || ( inside (x,y) (x2,y2) && y-x <= y2-x2 )
 
+ck5 : ( Float , Float ) -> ( Float , Float ) -> (Float , Float ) -> Bool
+ck5 (x,y) (x1,y1) (x2,y2) = 
+        ( x >= x1-15 && x <= x1+15 && y >= y1 && y <= y2 ) || inside (x,y) (x1,y1) || inside (x,y) (x2,y2)
+
+ck6 : ( Float , Float ) -> ( Float , Float ) -> (Float , Float ) -> Bool
+ck6 (x,y) (x1,y1) (x2,y2) = 
+        ( y >= y1-15 && y <= y1+15 && x >= x1 && x <= x2 ) || inside (x,y) (x1,y1) || inside (x,y) (x2,y2) 
+
 collide : ( Float , Float ) -> ( Float , Float ) -> ( Float , Float ) -> Line -> Bool
 collide (lx,ly) (nx,ny) (a,b) line =
     let
         (x1,y1) = line.p1
         (x2,y2) = line.p2
-        ck5 = ( \(x,y) -> ( x >= x1-15 && x <= x1+15 && y >= y1 && y <= y2 )
-            || inside (x,y) (x1,y1) || inside (x,y) (x2,y2) )
-        ck6 = ( \(x,y) -> ( y >= y1-15 && y <= y1+15 && x >= x1 && x <= x2 )
-            || inside (x,y) (x1,y1) || inside (x,y) (x2,y2) )
     in
         if b == 0 then 
-            if y1 == y2  then 
+            if y1 == y2 then 
                 if a == 1 then
                    ck1 (nx,ny) (x1,y1) (x2,y2) && not (ck1 (lx,ly) (x1,y1) (x2,y2))
                 else 
@@ -334,9 +338,9 @@ collide (lx,ly) (nx,ny) (a,b) line =
             else False
         else 
             if x1 == x2 then
-               ck5 (nx,ny) && not (ck5 (lx,ly))
+               ck5 (nx,ny) (x1,y1) (x2,y2) && not (ck5 (lx,ly) (x1,y1) (x2,y2))
             else
-               ck6 (nx,ny) && not (ck5 (lx,ly))
+               ck6 (nx,ny) (x1,y1) (x2,y2) && not (ck5 (lx,ly) (x1,y1) (x2,y2))
                
 
 updateSpeed : ( Float , Float ) -> Dir -> Int -> ( Float , Float )
@@ -482,6 +486,14 @@ getNball model lball nvel1 nvel2 nvel3 nvel4 ncolor nmp =
         fball = { lball | mp = nmp , pos = model.ball.pos , vel = (0,0) , color = ncolor }
     in
         (nball1,nball2,(nball3,nball4,fball))
+
+getNvel3 : Model -> (Float,Float) -> (List Line -> Bool) -> List Line -> (Float,Float)
+getNvel3 model nvel1 down plate = 
+    if down plate then
+        if (model.plate.state /= None) then updateSpeed nvel1 model.plate.state model.level.id
+        else nvel1
+    else model.ball.vel
+
 ballHitTheBrick : ( Model , Cmd Msg ) -> ( Model, Cmd Msg)
 ballHitTheBrick ( model , cmd ) =
     let
@@ -496,11 +508,7 @@ ballHitTheBrick ( model , cmd ) =
         ( lineb , linep , ( liney , lineB , (lineg,lineball,(plate,line,lines) ) ) ) = getListline model
         ( nvel1 , nvel2 , nvel4 ) = getNvel model
         ( up , down , (right , left) ) = getDir (lx,ly) (nx,ny)
-        nvel3 = 
-            if down plate then
-                if (model.plate.state /= None) then updateSpeed nvel1 model.plate.state model.level.id
-                else nvel1
-            else model.ball.vel
+        nvel3 = getNvel3 model nvel1 down plate 
         alldir = (\x -> ( up x || down x || right x || left x ) )
         npass = updatePass model alldir liney lineb linep
         nlevel = { id = model.level.id , map = model.level.map , pass = npass , speed = model.level.speed }
@@ -521,8 +529,6 @@ ballHitTheBrick ( model , cmd ) =
     in
         (if down plate then ( { model | level = nlevel , ball = nball3 } , Cmd.none )
         else
-    --    if up lines && ( left lines || right lines ) then ( { model | level = nlevel , ball = nball4 } , Cmd.none )
-    --    else 
         if down plate && ( left plate || right plate ) then ( { model | level = nlevel , ball = nball4 } , Cmd.none )
         else 
         if up line then ( { model | level = nlevel , ball = nball1 } , Cmd.none ) 
