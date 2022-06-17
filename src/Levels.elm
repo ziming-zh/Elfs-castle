@@ -54,12 +54,13 @@ initMap2 =
     in
     
     GMap 
-    [bl, y, b,  b,  y, bl, 
-     bl, b, bl, p,  b, bl, 
-     b,  p, bl, p,  b, b,
-     b,  b, p,  bl, b, b, 
-     bl, b, b,  bl, b, bl
-     ]
+    (List.concat
+    [[bl, y, b,  b,  y, bl], 
+     [bl, b, bl, p,  b, bl], 
+     [b,  p, bl, p,  b, b],
+     [b,  b, p,  bl, b, b], 
+     [bl, b, b,  bl, b, bl]
+     ])
      (6,5)
 
      
@@ -72,15 +73,16 @@ initMap3 =
         bl = Black
     in
     GMap 
-    [bl , bl, y , b , b , y , bl, bl,
-     bl , p , b , bl, bl, b , p , bl, 
-     b  , b , y , bl, bl, y , b , b ,
-     bl , b , b , y , y , b , b , bl,
-     bl , b , b , p , p , b , b , bl,
-     b  , b , p , bl, bl, p , b , b ,
-     bl , b , p , bl, bl, p , b , bl,
-     bl , b , b , b , b , b , b , bl
-     ]
+    (List.concat
+    [[bl , bl, y , b , b , y , bl, bl],
+     [bl , p , b , bl, bl, b , p , bl], 
+     [b  , b , y , bl, bl, y , b , b ],
+     [bl , b , b , y , y , b , b , bl],
+     [bl , b , b , p , p , b , b , bl],
+     [b  , b , p , bl, bl, p , b , b ],
+     [bl , b , p , bl, bl, p , b , bl],
+     [bl , b , b , b , b , b , b , bl]
+     ])
      (8,8)
 
 
@@ -88,10 +90,11 @@ initEnding1 : End
 initEnding1 = 
     { map =
         GMap 
-        [Nocolor, Yellow, Yellow, Nocolor,
-        Yellow, Yellow, Yellow, Yellow,
-        Nocolor, Purple, Purple, Nocolor,
-        Nocolor, Purple, Purple, Nocolor]
+        (List.concat
+        [[Nocolor, Yellow, Yellow, Nocolor],
+        [Yellow, Yellow, Yellow, Yellow],
+        [Nocolor, Purple, Purple, Nocolor],
+        [Nocolor, Purple, Purple, Nocolor]])
         (4,4)
     , pos = (0,0) }
 
@@ -99,11 +102,12 @@ initEnding2 : End
 initEnding2 =
     { map = 
         GMap
-        [Nocolor, Yellow, Yellow, Yellow, Nocolor,
-        Yellow, Yellow, Nocolor, Yellow, Yellow,
-        Nocolor, Purple,Blue, Purple, Nocolor,
-        Nocolor, Purple,Blue, Purple, Nocolor,
-        Nocolor, Purple,Blue, Purple, Nocolor]
+        (List.concat
+        [[Nocolor, Yellow, Yellow, Yellow, Nocolor],
+        [Yellow, Yellow, Nocolor, Yellow, Yellow],
+        [Nocolor, Purple,Blue, Purple, Nocolor],
+        [Nocolor, Purple,Blue, Purple, Nocolor],
+        [Nocolor, Purple,Blue, Purple, Nocolor]])
         (5,5)
     , pos = (0,0) }
 
@@ -111,11 +115,12 @@ initEnding3 : End
 initEnding3 =
     { map = 
         GMap
-        [Nocolor, Yellow, Yellow, Yellow, Yellow, Yellow, Nocolor,
-        Yellow, Yellow, Yellow, Nocolor, Yellow, Yellow, Yellow,
-        Nocolor, Purple, Blue, Nocolor, Blue, Purple, Nocolor,
-        Nocolor, Purple, Blue, Nocolor, Blue, Purple, Nocolor,
-        Nocolor, Purple, Blue, Nocolor, Blue, Purple, Nocolor,
-        Nocolor, Purple, Blue, Nocolor, Blue, Purple, Nocolor]
+        (List.concat
+        [[Nocolor, Yellow, Yellow, Yellow, Yellow, Yellow, Nocolor],
+        [Yellow, Yellow, Yellow, Nocolor, Yellow, Yellow, Yellow],
+        [Nocolor, Purple, Blue, Nocolor, Blue, Purple, Nocolor],
+        [Nocolor, Purple, Blue, Nocolor, Blue, Purple, Nocolor],
+        [Nocolor, Purple, Blue, Nocolor, Blue, Purple, Nocolor],
+        [Nocolor, Purple, Blue, Nocolor, Blue, Purple, Nocolor]])   
         (7,6)
     , pos = (0,0) }
