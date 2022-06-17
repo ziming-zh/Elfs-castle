@@ -366,9 +366,9 @@ renderChanging model =
     in
         div
         [ style "height" "50px"
-        , style "left" "125px"
+        , style "left" "150px"
         , style "position" "relative"
-        , style "top" "-800px"
+        , style "top" "-700px"
         , style "opacity" (String.fromFloat k)
         , style "color" "#34495f"
         , style "font-size" "40px"
@@ -377,8 +377,8 @@ renderChanging model =
         [ text 
             (case model.level.id of
                 1 -> "A tower is built!"
-                2 -> "A turret is built"
-                _ -> "A palace is built"
+                2 -> "A turret is built!"
+                _ -> "A palace is built!"
             ) ]
 renderGame : Model -> Html Msg
 renderGame model = 
@@ -621,7 +621,7 @@ view model =
             [div
                 []
                 [ Html.img
-                    [ HtmlAttr.src "image/Begining.png"  
+                    [ HtmlAttr.src "./assets/beginning.png"  
                     , style "width" (String.fromFloat (w*3/4) ++ "px")
                     , style "height"  (String.fromFloat h ++ "px")
                     , style "position" "absolute"
@@ -636,7 +636,7 @@ view model =
             [div
                 []
                 [ Html.img
-                    [ HtmlAttr.src "image/Begining.png"  
+                    [ HtmlAttr.src "./assets/beginning.png"  
                     , style "width" (String.fromFloat (w*3/4) ++ "px")
                     , style "height"  (String.fromFloat h ++ "px")
                     , style "position" "absolute"
