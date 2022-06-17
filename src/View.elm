@@ -3,16 +3,14 @@ import Svg exposing (Svg, Attribute, svg, rect, defs, filter, feGaussianBlur, fe
 {-import Svg.Attributes exposing (width, height, viewBox, x, y, rx, fill, id, stdDeviation, result)-}
 import Svg.Attributes as SvgAttr
 import Message exposing (Msg(..))
-import Model exposing (Model,Doorstate,Door,Bricks,Ball,Plate,State,getBrickPos)
+import Model exposing (Model,Doorstate,Door,Bricks,Ball,Plate,State)
 import Html exposing (..)
 import Html.Attributes as HtmlAttr exposing (..)
 import Html.Events exposing (onClick)
 import Color exposing (Color)
-import Markdown
 import View.Pacman as View
 import Color exposing (BallColor(..),NormalColor(..),type2color)
 import Levels exposing (Level,End, GMap,Condition)
-import Levels exposing (initEnding1,initEnding2,initEnding3)
 import Array exposing (Array)
 import Model exposing (State(..))
 
@@ -469,10 +467,6 @@ initHouse end pass =
             (_,_,c) -> c
         nmap = resmap end.map pass 1
     in
-        -- zip sol (List.map (\y -> (revealColor map.color (Tuple.first y) (Tuple.second y))) (colorChecker condition))
-       -- revealColor Purple pur map.color
-       -- |> revealColor Yellow yel
-       -- |> revealColor Blue blue
         nmap.color 
         |> zip sol
 
@@ -642,11 +636,11 @@ viewBegining model (w,h) =
     [div
         []
         [ Html.img
-            [ HtmlAttr.src "./assets/beginning.png"  
+            [ HtmlAttr.src "image/beginning.png"  
             , style "width" (String.fromFloat (w*3/4) ++ "px")
             , style "height"  (String.fromFloat h ++ "px")
             , style "position" "absolute"
-            , style "opacity" (String.fromFloat (model.time/1000))
+       --     , style "opacity" (String.fromFloat (model.time/1000))
             ] []
         ]
     , div 
