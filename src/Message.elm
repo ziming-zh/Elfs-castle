@@ -10,6 +10,7 @@ type Msg
     | GetViewport Viewport
     | Resize Int Int
     | Start
+    | Begin
     | Pause
     | Resume
     | Next
