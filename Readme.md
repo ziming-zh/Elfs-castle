@@ -1,17 +1,19 @@
-[P1]: [This project designs a simple game that manipulates the plane to prevent the ball from dropping off]
+[P1]: [Elf's Castle]
 
 # README
 This file contains relevant information about installation and startup.
 
 ## Installation
-	[Operating System]
+	Operating System: Windows 11/10/7
 
 [Comments/Instructions]
+
 ```
 [Code]
 ```
 
 [Comments/Instructions]
+
 ```
 [Code]
 ```
@@ -24,6 +26,7 @@ This file contains relevant information about installation and startup.
 ## Usage
 
 [Comments/Instructions]
+
 ```
 [Code]
 ```
@@ -40,4 +43,4 @@ Ziming Zhou 521370910142
 Chongye Yang 521370910088
 
 # License 
-[SilverFocs Incubator Licence] (Link to it on silverfocs website) 
+[SilverFocs Incubator Licence] https://focs.ji.sjtu.edu.cn/silverfocs/markdown/license
