@@ -38,10 +38,10 @@ setLevel id map condition speed=
 initMap1 : GMap
 initMap1 = 
     GMap 
-    [Black, Blue, Purple, Purple,Blue,Black,
-     Black, Yellow, Black, Black,Yellow,Black,
+    (List.concat[[Black, Blue, Purple, Purple,Blue,Black,
+     Black, Yellow, Black, Black,Yellow,Black],[
      Black, Blue, Yellow, Yellow,Blue,Black,
-     Black, Blue, Purple, Purple,Blue,Black]
+     Black, Blue, Purple, Purple,Blue,Black]])
      (6,4)
 
 initMap2 : GMap
