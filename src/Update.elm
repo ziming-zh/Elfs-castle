@@ -229,7 +229,7 @@ checkend ( model , cmd ) =
     in
     if model.door.state == Model.Closed then ( model , Cmd.none )
     else
-        if dis (x,y) (nx,ny) <= 20 then 
+        if dis (x,y) (nx,ny) <= 25 then 
             ( { model | state = Changing , door = { state = Model.Open , time = model.door.time + model.dt } } , Cmd.none )
                 |> updateScore
         else 
