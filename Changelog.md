@@ -1,4 +1,4 @@
-[p1]: [ The magic Elf needs bricks to build for his castles. However, the total amount of bricks is limited (tricky )and sometimes prevents Elf to realize his dream. There are three types of useful bricks: Darksteel (purple), Gold(yellow), and Diamond (blue). Another two types of bricks, the Granite and Bedrock, creates barriers to the Elf. Take good use of the Elf's Magic Power to earn bonus bricks and collect required amount of bricks for Elf's Kindom!]
+[p1]: [ **Elf's Castle** -- The magic Elf needs bricks to build for his castles. However, the total amount of bricks is limited (tricky )and sometimes prevents Elf to realize his dream. There are three types of useful bricks: Darksteel (purple), Gold(yellow), and Diamond (blue). Another two types of bricks, the Granite and Bedrock, creates barriers to the Elf. Take good use of the Elf's Magic Power to earn bonus bricks and collect required amount of bricks for Elf's Kindom!]
 
 # Changelog
 All notable changes to this project are documented in this file.
