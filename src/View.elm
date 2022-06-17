@@ -636,7 +636,7 @@ viewBegining model (w,h) =
     [div
         []
         [ Html.img
-            [ HtmlAttr.src "image/beginning.png"  
+            [ HtmlAttr.src "./assets/beginning.png"  
             , style "width" (String.fromFloat (w*3/4) ++ "px")
             , style "height"  (String.fromFloat h ++ "px")
             , style "position" "absolute"
