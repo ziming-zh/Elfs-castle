@@ -276,44 +276,55 @@ dis : ( Float , Float ) -> ( Float , Float ) -> Float
 dis (x1,y1) (x2,y2) =
     sqrt ((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1))
 
-collide : ( Float , Float ) -> ( Float , Float ) -> Line -> Bool
-collide (nx,ny) (a,b) line =
+collide : ( Float , Float ) -> ( Float , Float ) -> ( Float , Float ) -> Line -> Bool
+collide (lx,ly) (nx,ny) (a,b) line =
     let
         (x1,y1) = line.p1
         (x2,y2) = line.p2
-        inside1 = dis (x1,y1) (nx,ny) <= 15
-        inside2 = dis (x2,y2) (nx,ny) <= 15
+        inside1 = ( \(x,y) -> dis (x1,y1) (x,y) <= 15 )
+        inside2 = ( \(x,y) -> dis (x2,y2) (x,y) <= 15 )
+        ck1 = ( \(x,y) -> 
+                ( y <= y1+15 && y >= y1 && x >= x1 && x <= x2 )
+            || ( inside1 (x,y) && x+y >= x1+y1 )
+            || ( inside2 (x,y) && y-x >= y2-x2  ) )
+        ck2 = ( \(x,y) -> 
+                ( y >= y1-15 && y <= y1 && x >= x1 && x <= x2 )
+            || ( inside1 (x,y) && y-x <= y1-x1)
+            || ( inside2 (x,y) && x+y <= x2+y2 ))
+        ck3 = ( \(x,y) -> 
+                ( x <= x1 && x >= x1-15 && y >= y1 && y <= y2 )
+            || ( inside1 (x,y) && y-x >= y1-x1 )
+            || ( inside2 (x,y) && x+y <= y2+x2 ))
+        ck4 = ( \(x,y) -> 
+                ( x >= x1 && x <= x1+15 && y >= y1 && y <= y2 )
+            || ( inside1 (x,y) && x+y >= x1+y1 )
+            || ( inside2 (x,y) && y-x <= y2-x2 ))
+        ck5 = ( \(x,y) -> ( x >= x1-15 && x <= x1+15 && y >= y1 && y <= y2 )
+            || inside1 (x,y) || inside2 (x,y) )
+        ck6 = ( \(x,y) -> ( y >= y1-15 && y <= y1+15 && x >= x1 && x <= x2 )
+            || inside1 (x,y) || inside2 (x,y) ) 
     in
         if b == 0 then 
             if y1 == y2  then 
                 if a == 1 then
-                   ( ny <= y1+15 && ny >= y1 && nx >= x1 && nx <= x2 )
-                || ( inside1 && nx+ny >= x1+y1 )
-                || ( inside2 && ny-nx >= y2-x2  )
+                   ck1 (nx,ny) && not (ck1 (lx,ly))
                 else 
-                   ( ny >= y1-15 && ny <= y1 && nx >= x1 && nx <= x2 )
-                || ( inside1 && ny-nx <= y1-x1)
-                || ( inside2 && nx+ny <= x2+y2 )
+                   ck2 (nx,ny) && not (ck2 (lx,ly))
             else False
         else 
         if a == 0 then
             if x1 == x2 then
                 if b == 1 then
-                   ( nx <= x1 && nx >= x1-15 && ny >= y1 && ny <= y2 )
-                || ( inside1 && ny-nx >= y1-x1 )
-                || ( inside2 && nx+ny <= y2+x2 )
+                   ck3 (nx,ny) && not (ck3 (lx,ly))
                 else
-                   ( nx >= x1 && nx <= x1+15 && ny >= y1 && ny <= y2 )
-                || ( inside1 && nx+ny >= x1+y1 )
-                || ( inside2 && ny-nx <= y2-x2 )
+                   ck4 (nx,ny) && not (ck4 (lx,ly))
             else False
         else 
             if x1 == x2 then
-               ( nx >= x1-15 && nx <= x1+15 && ny >= y1 && ny <= y2 )
-            || inside1 || inside2
+               ck5 (nx,ny) && not (ck5 (lx,ly))
             else
-               ( ny >= y1-15 && ny <= y1+15 && nx >= x1 && nx <= x2 )
-            || inside1 || inside2
+               ck6 (nx,ny) && not (ck5 (lx,ly))
+               
 
 updateSpeed : ( Float , Float ) -> Dir -> Int -> ( Float , Float )
 updateSpeed (lvx,lvy) dir id =
@@ -339,17 +350,17 @@ updateSpeed (lvx,lvy) dir id =
         ( speed * cos( nangle ) , speed * sin( nangle ) )
 
 
-checkbrike : Int -> BallColor -> ( Float , Float ) -> Block -> Bool
-checkbrike k color (nx,ny) (x,y) =
+checkbrike : Int -> BallColor -> ( Float , Float ) -> ( Float , Float ) -> Block -> Bool
+checkbrike k color (lx,ly) (nx,ny) (x,y) =
     let
         lines = getlines [(x,y)]
         flag = 
             case color of 
                 Red colorr ->
-                    not (List.any (collide (nx,ny) (1,1)) lines)
+                    not (List.any (collide (lx,ly) (nx,ny) (1,1)) lines)
                 _ ->
                     if y /= Black then
-                        not (List.any (collide (nx,ny) (1,1)) lines)
+                        not (List.any (collide (lx,ly)  (nx,ny) (1,1)) lines)
                     else True
         nflag = if k == 0 then flag
                 else not flag
@@ -360,11 +371,11 @@ checkbrike k color (nx,ny) (x,y) =
                 if xx == Color.Noth then True
                 else nflag
 
-updateBrike : ( Float , Float ) -> List Block -> ( Model , Cmd Msg ) -> ( Model , Cmd Msg )
-updateBrike (nx,ny) list1 (model,cmd) =
+updateBrike : ( Float , Float ) -> ( Float , Float ) -> List Block -> ( Model , Cmd Msg ) -> ( Model , Cmd Msg )
+updateBrike (lx,ly) (nx,ny) list1 (model,cmd) =
     let
-        nbrick = List.filter (checkbrike 0 model.ball.color (nx,ny)) list1
-        ggbrick = List.filter ( checkbrike 1 model.ball.color (nx,ny)) list1
+        nbrick = List.filter (checkbrike 0 model.ball.color (lx,ly) (nx,ny)) list1
+        ggbrick = List.filter ( checkbrike 1 model.ball.color (lx,ly) (nx,ny)) list1
         nscore = model.score + ((List.length list1)-(List.length nbrick))*100
     in
         ( { model | bricks = nbrick , score = nscore } , Cmd.none )
@@ -440,10 +451,10 @@ ballHitTheBrick ( model , cmd ) =
                 if (model.plate.state /= None) then updateSpeed nvel1 model.plate.state model.level.id
                 else nvel1
             else model.ball.vel
-        up = List.any (collide (nx,ny) (1,0))
-        down = List.any (collide (nx,ny) (-1,0)) 
-        right =  List.any (collide (nx,ny) (0,-1)) 
-        left =  List.any (collide (nx,ny) (0,1)) 
+        up = List.any (collide (lx,ly) (nx,ny) (1,0))
+        down = List.any (collide (lx,ly) (nx,ny) (-1,0)) 
+        right =  List.any (collide (lx,ly)  (nx,ny) (0,-1)) 
+        left =  List.any (collide (lx,ly)  (nx,ny) (0,1)) 
         alldir = (\x -> ( up x || down x || right x || left x ) )
         npass = updatePass model alldir liney lineb linep
         nlevel = { id = model.level.id , map = model.level.map , pass = npass , speed = model.level.speed }
@@ -469,8 +480,8 @@ ballHitTheBrick ( model , cmd ) =
     in
         (if down plate then ( { model | level = nlevel , ball = nball3 } , Cmd.none )
         else
-        if up lines && ( left lines || right lines ) then ( { model | level = nlevel , ball = nball4 } , Cmd.none )
-        else 
+    --    if up lines && ( left lines || right lines ) then ( { model | level = nlevel , ball = nball4 } , Cmd.none )
+    --    else 
         if down plate && ( left plate || right plate ) then ( { model | level = nlevel , ball = nball4 } , Cmd.none )
         else 
         if up line then ( { model | level = nlevel , ball = nball1 } , Cmd.none ) 
@@ -481,4 +492,4 @@ ballHitTheBrick ( model , cmd ) =
         else 
         if left lines then ( { model | level = nlevel , ball = nball2 } , Cmd.none )
         else ( model , Cmd.none ))
-            |> (updateBrike (nx,ny) model.bricks)
+            |> (updateBrike (lx,ly) (nx,ny) model.bricks)

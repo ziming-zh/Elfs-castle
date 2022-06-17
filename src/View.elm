@@ -137,7 +137,12 @@ renderinfor model =
             , SvgAttr.height (gety 700)
             ]
             [ drawreac (0,320) (202,1) "#242424" , drawreac (0,320) (1,10) "#242424" , drawreac (0,330) (202,1) "#242424" , drawreac (202,320) (1,10) "#242424"
-            , drawreac (1,321) (model.ball.mp.val*2,8) "#3380BC"
+            , drawreac (1,321) (model.ball.mp.val*2,8) 
+                (if model.ball.mp.val == model.ball.mp.max then "#FF6666"
+                else
+                ( case model.ball.color of 
+                    Normal aa -> "#3380BC" 
+                    Red bb -> "#FF6666" ))
             ]
         ]
 
@@ -167,7 +172,7 @@ renderNeed model =
             ,renderX "X" 70 210 "#bdc3c7",renderX "X" 70 225 "#bdc3c7",renderX "X" 70 240 "#bdc3c7"
             ,renderX (String.fromInt (Basics.max 0 x)) 100 450 "#242424",renderX (String.fromInt (Basics.max 0 y)) 100 465 "#242424"
             ,renderX (String.fromInt (Basics.max 0 z)) 100 480 "#242424"
-            ,renderX "mp:" -145 440 "#bdc3c7",renderTip model "Press F!" -140 440 "#242424" 
+            ,renderX "mp:" -145 440 "#bdc3c7",renderTip model "Press F!" -140 440 "#FF6666" 
         ]
 
 
@@ -375,9 +380,9 @@ renderChanging model =
         ]
         [ text 
             (case model.level.id of
-                1 -> "A tower is built!"
-                2 -> "A turret is built!"
-                _ -> "A palace is built!"
+                1 -> "Hooray! A Tower!!!"
+                2 -> "Hooray! A Turret!!!"
+                _ -> "Hooray! A Palace!!!"
             ) ]
 renderGame : Model -> Html Msg
 renderGame model = 
