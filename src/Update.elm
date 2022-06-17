@@ -1,6 +1,6 @@
 module Update exposing (update)
 import Message exposing (Msg(..))
-import Model exposing (Model,ArrowKey(..),Plate,Block,Property,Ball,Line,Bricks,State(..),Dir(..),model_init,init_model1,getBrickPos,model_level1,model_level2,model_level3,init_model2,init_model3)
+import Model exposing (Model,ArrowKey(..),Door,Doorstate,Plate,Block,Property,Ball,Line,Bricks,State(..),Dir(..),model_init,init_model1,getBrickPos,model_level1,model_level2,model_level3,init_model2,init_model3)
 import Color exposing (BallColor)
 import Color exposing (BallColor(..))
 import Color exposing (NormalColor(..))
@@ -152,14 +152,20 @@ updateScore ( model , cmd ) =
             +   ( List.length ( List.filter ( \x -> ( Tuple.second x == Blue ) ) brick ) ) * 5000
     in
         ( { model | score = nscore } , Cmd.none )
+
+deledoor : Bricks -> Bricks 
+deledoor brick =
+    List.filter (\x -> (Tuple.second x /= Noth)) brick
+
 updatelevel : ( Model , Cmd Msg ) -> ( Model , Cmd Msg )
 updatelevel ( model , cmd ) = 
     let
         (x,y,z) = model.level.pass
     in
         if x <= 0 && y <= 0 && z <= 0 then 
-            ( { model | state = Changing } , Cmd.none  )
-                |> updateScore
+            if model.door.state /= Model.Open then
+                ( { model | door = { state = Model.Open  , time = 0 } , bricks = deledoor model.bricks} , Cmd.none  )
+            else ( model , Cmd.none )    
          --   if model.level.id == 1 
            -- then ( model_level2 model , Cmd.none )
         --  else ( model_level3 model , Cmd.none )
@@ -208,7 +214,24 @@ changeview ( model , cmd ) =
     in
         ( { model | ending = { map = model.ending.map , pos = (nx,ny) } } , Cmd.none )
 
-
+checkend : ( Model , Cmd Msg ) -> ( Model , Cmd Msg )
+checkend ( model , cmd ) = 
+    let
+        (x,y) = model.ball.pos
+        nx = 300
+        ny = 
+            case model.level.id of 
+                2 -> 50
+                _ -> 150
+        
+    in
+    if model.door.state == Model.Closed then ( model , Cmd.none )
+    else
+        if dis (x,y) (nx,ny) <= 20 then 
+            ( { model | state = Changing , door = { state = Model.Open , time = model.door.time + model.dt } } , Cmd.none )
+                |> updateScore
+        else 
+            ( { model | door = { state = Model.Open , time = model.door.time + model.dt } } , Cmd.none )
 
 updateGame : Model -> ( Model , Cmd Msg )
 updateGame model = 
@@ -225,6 +248,7 @@ updateGame model =
             |> updateBall
             |> moveplate
             |> updatelevel
+            |> checkend
     else
     if model.state == Begining || model.state == Ending then
         ( { model | time = model.time + model.dt } , Cmd.none )
@@ -330,7 +354,11 @@ checkbrike k color (nx,ny) (x,y) =
         nflag = if k == 0 then flag
                 else not flag
     in
-        nflag
+        case color of
+            Red yy -> nflag
+            Normal xx ->
+                if xx == Color.Noth then True
+                else nflag
 
 updateBrike : ( Float , Float ) -> List Block -> ( Model , Cmd Msg ) -> ( Model , Cmd Msg )
 updateBrike (nx,ny) list1 (model,cmd) =
@@ -397,7 +425,7 @@ ballHitTheBrick ( model , cmd ) =
         
         linep = getlines ( List.filter (\block -> (Tuple.second block) == Purple) model.bricks ) 
         liney = getlines ( List.filter (\block -> (Tuple.second block) == Yellow) model.bricks ) 
-        lineB = getlines ( List.filter (\block -> (Tuple.second block) == Black) model.bricks )
+        lineB = getlines ( List.filter ((\block -> (Tuple.second block) == Black || (Tuple.second block) == Color.Noth )) model.bricks )
         lineg = getlines ( List.filter (\block -> (Tuple.second block) == Grey) model.bricks )
         lineball = List.concat [lineb,linep,liney,lineg] 
         plate = [pointtoline (150,0) (model.plate.pos,780),{p1=(600,0),p2=(600,780)},{p1=(0,0),p2=(600,0)},{p1=(0,0),p2=(0,780)}]
