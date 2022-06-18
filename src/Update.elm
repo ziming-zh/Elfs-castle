@@ -382,11 +382,8 @@ checkbrike k color (lx,ly) (nx,ny) (x,y) =
         nflag = if k == 0 then flag
                 else not flag
     in
-        case color of
-            Red yy -> nflag
-            Normal xx ->
-                if xx == Color.Noth then True
-                else nflag
+        if y == Color.Noth then True
+        else nflag
 
 updateBrike : ( Float , Float ) -> ( Float , Float ) -> List Block -> ( Model , Cmd Msg ) -> ( Model , Cmd Msg )
 updateBrike (lx,ly) (nx,ny) list1 (model,cmd) =

@@ -219,15 +219,15 @@ model_init x =
 
 init_model1 : Model -> Model
 init_model1 model = 
-    Model 0 model.windowsize (initBall 3) init_Map1 initPlate 2 Paused 0 initLevel1 initEnding1 0 (Door Closed 0)
+    Model 0 model.windowsize (initBall 3) init_Map1 initPlate 2 Paused model.score initLevel1 initEnding1 0 (Door Closed 0)
 
 init_model2 : Model -> Model
 init_model2 model = 
-    Model 0 model.windowsize (newBall model.ball 2) init_Map2 initPlate 2 Paused 0 initLevel2 initEnding2 0 (Door Closed 0)
+    Model 0 model.windowsize (newBall model.ball 2) init_Map2 initPlate 2 Paused model.score initLevel2 initEnding2 0 (Door Closed 0)
 
 init_model3 : Model -> Model
 init_model3 model =
-    Model 0 model.windowsize (newBall model.ball 3) init_Map3 initPlate 2 Paused 0 initLevel3 initEnding3 0 (Door Closed 0)
+    Model 0 model.windowsize (newBall model.ball 3) init_Map3 initPlate 2 Paused model.score initLevel3 initEnding3 0 (Door Closed 0)
 
 model_level1 : Model -> Model
 model_level1 model = 
