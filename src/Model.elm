@@ -160,12 +160,12 @@ init_Map3 =
         l9 = List.concat[l6,l7,l77,l8,l88,l0,la,getline (275,475) (0,0) 1]
         lc = getline (225,425) (50,0) 3
         ld = getline (275,225) (0,50) 4
-        lll = getline (275,50) (0,0) 1
+        lll = getline (275,125) (0,0) 1
         l = List.concat [l9,lc,ld,lll]
-        color = List.concat[ List.repeat 24 Black ,List.repeat 20 Grey,[Blue,Blue],List.repeat 6  Yellow,
+        color = List.concat[ List.repeat 15 Black ,List.repeat 29 Grey,[Blue,Blue],List.repeat 6  Yellow,
                     List.repeat 2 Yellow,List.repeat 2 Blue,List.repeat 2 Yellow,[Blue,Blue],List.repeat 7 Purple
                     ,List.repeat 20 Grey,[Noth]]
-        lb = [27,28,29,38,39]
+        lb = List.concat[List.range 18 20,List.range 33 34,List.range 27 30,List.range 40 44]
         ncolor = changeColor color lb 1
     in
         zip l ncolor
