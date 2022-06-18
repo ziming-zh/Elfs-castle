@@ -9,6 +9,7 @@ import Html exposing (q)
 import Browser.Dom exposing (getViewport)
 import Detector exposing (collide,getDir,getlines,getListline,getNball,getNvel,getNvel3,dis)
 import Task
+import Levels exposing (Level)
 
 
 
@@ -366,11 +367,22 @@ ballHitTheBrick ( model , cmd ) =
                     else model.ball.mp
         (nball1,nball2,(nball3,nball4,fball)) = getNball model model.ball nvel1 nvel2 nvel3 nvel4 ncolor nmp 
     in
+        hitResult model plate line lines nlevel nball1 nball2 nball3 nball4 fball
+
+hitResult : Model -> List Line -> List Line -> List Line -> Level ->  Model.Ball  ->  Model.Ball  ->  Model.Ball  ->  Model.Ball  ->  Model.Ball -> (Model, Cmd Msg)
+hitResult model plate line lines nlevel nball1 nball2 nball3 nball4 fball= 
+    let
+        ( lx , ly ) = model.ball.pos
+        ( vx , vy ) = model.ball.vel
+        ( nx , ny ) = ( lx + vx*model.dt/6 , ly + vy*model.dt/6 )
+        ( up , down , (right , left) ) = getDir (lx,ly) (nx,ny)
+        
+    in
         (if down plate then ( { model | level = nlevel , ball = nball3 } , Cmd.none )
-        else if down plate && ( left plate || right plate ) then ( { model | level = nlevel , ball = nball4 } , Cmd.none )
-        else if up line then ( { model | level = nlevel , ball = nball1 } , Cmd.none ) 
-        else if down lines then ( { model | level = nlevel , ball = nball1 } , Cmd.none )
-        else if right lines then ( { model | level = nlevel , ball = nball2 } , Cmd.none )
-        else if left lines then ( { model | level = nlevel , ball = nball2 } , Cmd.none )
-        else ( model , Cmd.none ))
-            |> (updateBrike (lx,ly) (nx,ny) model.bricks)
+            else if down plate && ( left plate || right plate ) then ( { model | level = nlevel , ball = nball4 } , Cmd.none )
+            else if up line then ( { model | level = nlevel , ball = nball1 } , Cmd.none ) 
+            else if down lines then ( { model | level = nlevel , ball = nball1 } , Cmd.none )
+            else if right lines then ( { model | level = nlevel , ball = nball2 } , Cmd.none )
+            else if left lines then ( { model | level = nlevel , ball = nball2 } , Cmd.none )
+            else ( model , Cmd.none ))
+                |> (updateBrike (lx,ly) (nx,ny) model.bricks)
